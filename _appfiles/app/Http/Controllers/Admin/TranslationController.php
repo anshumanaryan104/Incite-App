@@ -1,0 +1,94 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+use App\Http\Controllers\Controller;
+
+use Illuminate\Http\Request;
+use App\Models\Translation;
+use App\Models\Language;
+use App\Http\Requests\Translation\StoreTranslationRequest;
+use App\Http\Requests\Translation\UpdateTranslationRequest;
+
+class TranslationController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index(Request $request)
+    {
+        try {
+            $data['result'] = Translation::getLists($request->all());
+            $data['languages'] = Language::where('status',1)->get();
+            return view('admin/translation.index',$data);
+        } 
+        catch (\Exception $ex) {
+            return redirect()->back()->with('error', $ex->getMessage() . ' '. $ex->getLine() . ' '. $ex->getFile());
+        }
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \App\Http\Requests\StoreTranslationRequest  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(StoreTranslationRequest $request)
+    {
+        try{
+            $validated = $request->validated();
+            $added = Translation::addUpdate($request->all());
+            if($added['status']){
+                return redirect('admin/translation')->with('success', $added['message']); 
+            }
+            else{
+                return redirect()->back()->with('error', $added['message']);
+            }            
+        }
+        catch(\Exception $ex){
+            return redirect()->back()->with('error', $ex->getMessage() . ' '. $ex->getLine() . ' '. $ex->getFile()); 
+        }
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  \App\Models\Translation  $translation
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        try{
+            $data['row'] = Translation::getDetail($id);
+            return view('admin/translation.edit',$data);
+        }
+        catch(\Exception $ex){
+            return redirect()->back()->with('error', $ex->getMessage() . ' '. $ex->getLine() . ' '. $ex->getFile()); 
+        }
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \App\Http\Requests\UpdateTranslationRequest  $request
+     * @param  \App\Models\Translation  $translation
+     * @return \Illuminate\Http\Response
+     */
+    public function update(UpdateTranslationRequest $request)
+    {
+        try{
+            $validated = $request->validated();
+            $updated = Translation::addUpdate($request->all(),$request->input('id'));
+            if($updated['status']){
+                return redirect('admin/translation')->with('success', $updated['message']); 
+            }
+            else{
+                return redirect()->back()->with('error', $updated['message']);
+            } 
+        }
+        catch(\Exception $ex){
+            return redirect()->back()->with('error', $ex->getMessage() . ' '. $ex->getLine() . ' '. $ex->getFile()); 
+        }
+    }
+}

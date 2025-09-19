@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<gma-ad-services-config>
+    <!-- Delay app measurement until MobileAds.initialize() is called. -->
+    <delay-app-measurement-init>true</delay-app-measurement-init>
+</gma-ad-services-config>

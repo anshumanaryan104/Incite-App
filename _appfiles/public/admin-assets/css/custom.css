@@ -1,0 +1,46 @@
+.float-right{
+    float: right;
+}   
+.display-inline-block{
+    display: inline-block;
+}
+.record-not-found{
+    text-align: center;
+    color: red;
+}
+.hide{
+    display: none;
+}
+.margin-top-negative-4{
+    margin-top: -4px;
+}
+.width-74-percent{
+    width: 74%;
+}
+.margin-bottom-20{
+    margin-bottom: 20px;
+}
+.required{
+    color: red;
+}
+.width-45-percent{
+    width: 45%;
+}
+.width-32-percent{
+    width: 32%;
+}
+.mr-10{
+    margin-right:10px;
+}
+.width-80-percent{
+    width: 80%;
+}
+.text-align-center{
+    text-align: center;
+}
+.width-100-percent{
+    width: 100%;
+}
+.width-49-percent {
+    width: 49%;
+}

@@ -1,0 +1,9 @@
+[{
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.incite.app",
+      "sha256_cert_fingerprints":
+      ["53:33:63:D4:60:14:6E:BA:6A:96:AD:4D:28:77:36:E4:8B:09:F9:04:B9:EA:38:02:4A:7F:DE:D2:B0:3A:8F:CB"]
+    }
+  }]
