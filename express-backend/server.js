@@ -357,34 +357,41 @@ app.get('/', (req, res) => {
     });
 });
 
-// 404 handler - MUST be before error handler
-app.use((req, res) => {
-    console.log(`❌ 404 Not Found: ${req.url}`);
-    res.status(404).json({
-        success: false,
-        message: `Route not found: ${req.url}`,
-        error: 'NOT_FOUND'
-    });
-});
-
-// Error handler - MUST be last
-app.use((err, req, res, next) => {
-    console.error('❌ Error:', err);
-    res.status(500).json({
-        success: false,
-        message: 'Internal server error',
-        error: err.message
-    });
-});
-
 // Start server
 if (USE_SUPABASE) {
     console.log('🔄 Using Supabase for data storage');
     // Load Supabase routes (this replaces all the mock routes above)
     const supabaseRoutes = require('./routes/api-simple');
-    // Comment out existing routes when using Supabase
-    app._router.stack = app._router.stack.filter(r => !(r.route && r.route.path && r.route.path.startsWith('/api')));
+    // Remove existing routes AND handlers before adding new ones
+    const originalStackLength = app._router.stack.length;
+    app._router.stack = app._router.stack.filter(r => {
+        // Keep only the initial middleware (cors, json, etc)
+        // Remove all route handlers and error handlers
+        return !r.route && !r.name?.includes('404') && !r.name?.includes('error');
+    });
+
+    // Add Supabase routes
     app.use('/api', supabaseRoutes);
+
+    // Add 404 handler after routes
+    app.use((req, res) => {
+        console.log(`❌ 404 Not Found: ${req.url}`);
+        res.status(404).json({
+            success: false,
+            message: `Route not found: ${req.url}`,
+            error: 'NOT_FOUND'
+        });
+    });
+
+    // Add error handler last
+    app.use((err, req, res, next) => {
+        console.error('❌ Error:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: err.message
+        });
+    });
 
     app.listen(PORT, () => {
         console.log(`
@@ -395,6 +402,27 @@ if (USE_SUPABASE) {
     });
 } else {
     // Original MySQL setup
+
+    // Add 404 handler
+    app.use((req, res) => {
+        console.log(`❌ 404 Not Found: ${req.url}`);
+        res.status(404).json({
+            success: false,
+            message: `Route not found: ${req.url}`,
+            error: 'NOT_FOUND'
+        });
+    });
+
+    // Add error handler
+    app.use((err, req, res, next) => {
+        console.error('❌ Error:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: err.message
+        });
+    });
+
     connectDB().then(() => {
         app.listen(PORT, () => {
             console.log(`
