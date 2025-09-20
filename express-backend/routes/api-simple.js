@@ -1741,6 +1741,329 @@ router.post('/signup', (req, res) => {
     }, 'Signup successful');
 });
 
+// POST /api/add-feed
+// Store user's selected interests/categories for personalized feed
+router.post('/add-feed', async (req, res) => {
+    try {
+        const {
+            user_id,
+            device_id,
+            category_ids,
+            category_names,
+            preferences
+        } = req.body;
+
+        console.log('📝 Adding user feed preferences:', {
+            user_id,
+            device_id,
+            categories_count: category_ids?.length || 0
+        });
+
+        // Validate required fields
+        if (!category_ids || !Array.isArray(category_ids) || category_ids.length === 0) {
+            return apiResponse(res, false, null, 'Category IDs array is required and must not be empty', 400);
+        }
+
+        if (!user_id && !device_id) {
+            return apiResponse(res, false, null, 'Either user_id or device_id is required', 400);
+        }
+
+        // Validate category_ids are numbers
+        const validCategoryIds = category_ids.every(id => typeof id === 'number' || !isNaN(parseInt(id)));
+        if (!validCategoryIds) {
+            return apiResponse(res, false, null, 'All category IDs must be valid numbers', 400);
+        }
+
+        // Convert category_ids to integers
+        const categoryIdsInt = category_ids.map(id => parseInt(id));
+
+        // If category_names not provided, fetch from categories table
+        let categoryNamesArray = category_names;
+        if (!categoryNamesArray || categoryNamesArray.length === 0) {
+            const { data: categories, error: catError } = await supabase
+                .from('categories')
+                .select('id, name')
+                .in('id', categoryIdsInt);
+
+            if (!catError && categories) {
+                // Create a map for maintaining order
+                const categoryMap = new Map(categories.map(cat => [cat.id, cat.name]));
+                categoryNamesArray = categoryIdsInt.map(id => categoryMap.get(id) || `Category ${id}`);
+            } else {
+                // Fallback if categories table not available
+                categoryNamesArray = categoryIdsInt.map(id => `Category ${id}`);
+            }
+        }
+
+        // Check if user/device already has feed preferences
+        let existingFeed = null;
+
+        if (user_id) {
+            const { data, error } = await supabase
+                .from('user_feeds')
+                .select('*')
+                .eq('user_id', user_id)
+                .single();
+
+            if (!error && data) {
+                existingFeed = data;
+            }
+        } else if (device_id) {
+            const { data, error } = await supabase
+                .from('user_feeds')
+                .select('*')
+                .eq('device_id', device_id)
+                .single();
+
+            if (!error && data) {
+                existingFeed = data;
+            }
+        }
+
+        // Prepare feed data
+        const feedData = {
+            category_ids: categoryIdsInt,
+            category_names: categoryNamesArray,
+            preferences: preferences || {},
+            is_active: true,
+            updated_at: new Date().toISOString()
+        };
+
+        // Add user_id or device_id
+        if (user_id) {
+            feedData.user_id = user_id;
+            feedData.device_id = null; // Clear device_id if user is logged in
+        } else {
+            feedData.device_id = device_id;
+        }
+
+        let result;
+
+        if (existingFeed) {
+            // Update existing feed preferences
+            const { data, error } = await supabase
+                .from('user_feeds')
+                .update(feedData)
+                .eq('id', existingFeed.id)
+                .select()
+                .single();
+
+            if (error) {
+                console.error('Error updating user feed:', error);
+                // If table doesn't exist, provide instructions
+                if (error.code === '42P01') {
+                    return apiResponse(res, true, {
+                        ...feedData,
+                        id: 'simulated_' + Date.now(),
+                        created_at: new Date().toISOString(),
+                        message: 'Feed preferences update simulated (table needs to be created)',
+                        instructions: 'Run create-user-feeds-table.sql in Supabase to create the user_feeds table'
+                    }, 'Feed preferences saved (simulated)');
+                }
+                throw error;
+            }
+
+            result = data;
+            console.log('✅ User feed preferences updated successfully');
+        } else {
+            // Insert new feed preferences
+            feedData.created_at = new Date().toISOString();
+
+            const { data, error } = await supabase
+                .from('user_feeds')
+                .insert([feedData])
+                .select()
+                .single();
+
+            if (error) {
+                console.error('Error creating user feed:', error);
+                // If table doesn't exist, provide instructions
+                if (error.code === '42P01') {
+                    return apiResponse(res, true, {
+                        ...feedData,
+                        id: 'simulated_' + Date.now(),
+                        message: 'Feed preferences saved (simulated - table needs to be created)',
+                        instructions: 'Run create-user-feeds-table.sql in Supabase to create the user_feeds table'
+                    }, 'Feed preferences saved (simulated)');
+                }
+                throw error;
+            }
+
+            result = data;
+            console.log('✅ User feed preferences created successfully');
+        }
+
+        // Track feed update in interactions table
+        await supabase
+            .from('interactions')
+            .insert([{
+                user_id: user_id || null,
+                device_id: device_id || null,
+                interaction_type: 'feed_preferences_updated',
+                metadata: {
+                    categories_count: categoryIdsInt.length,
+                    category_ids: categoryIdsInt,
+                    action: existingFeed ? 'update' : 'create'
+                },
+                created_at: new Date().toISOString()
+            }]);
+
+        // Format response
+        const response = {
+            id: result?.id || 'simulated_' + Date.now(),
+            user_id: result?.user_id || user_id,
+            device_id: result?.device_id || device_id,
+            category_ids: result?.category_ids || categoryIdsInt,
+            category_names: result?.category_names || categoryNamesArray,
+            preferences: result?.preferences || preferences || {},
+            is_active: result?.is_active !== undefined ? result.is_active : true,
+            created_at: result?.created_at || feedData.created_at,
+            updated_at: result?.updated_at || feedData.updated_at,
+            message: existingFeed ? 'Feed preferences updated successfully' : 'Feed preferences saved successfully'
+        };
+
+        apiResponse(res, true, response, response.message);
+
+    } catch (error) {
+        console.error('Error in /add-feed API:', error);
+        apiResponse(res, false, null, 'Failed to save feed preferences: ' + error.message, 500);
+    }
+});
+
+// GET /api/get-feed
+// Retrieve user's selected interests/categories
+router.get('/get-feed', async (req, res) => {
+    try {
+        const user_id = req.query.user_id || req.headers['x-user-id'];
+        const device_id = req.query.device_id || req.headers['x-device-id'];
+
+        if (!user_id && !device_id) {
+            return apiResponse(res, false, null, 'Either user_id or device_id is required', 400);
+        }
+
+        // Fetch user feed preferences
+        let feedData = null;
+
+        if (user_id) {
+            const { data, error } = await supabase
+                .from('user_feeds')
+                .select('*')
+                .eq('user_id', user_id)
+                .eq('is_active', true)
+                .single();
+
+            if (!error && data) {
+                feedData = data;
+            }
+        } else if (device_id) {
+            const { data, error } = await supabase
+                .from('user_feeds')
+                .select('*')
+                .eq('device_id', device_id)
+                .eq('is_active', true)
+                .single();
+
+            if (!error && data) {
+                feedData = data;
+            }
+        }
+
+        if (!feedData) {
+            // No feed preferences found, return default or empty
+            return apiResponse(res, true, {
+                category_ids: [],
+                category_names: [],
+                preferences: {},
+                is_configured: false,
+                message: 'No feed preferences found. Please select your interests.'
+            });
+        }
+
+        // Fetch full category details if needed
+        const { data: categories, error: catError } = await supabase
+            .from('categories')
+            .select('*')
+            .in('id', feedData.category_ids)
+            .eq('is_active', true)
+            .order('sort_order');
+
+        // Format response
+        const response = {
+            id: feedData.id,
+            user_id: feedData.user_id,
+            device_id: feedData.device_id,
+            category_ids: feedData.category_ids,
+            category_names: feedData.category_names,
+            categories: categories || [], // Full category objects
+            preferences: feedData.preferences || {},
+            is_active: feedData.is_active,
+            is_configured: true,
+            created_at: feedData.created_at,
+            updated_at: feedData.updated_at
+        };
+
+        apiResponse(res, true, response);
+
+    } catch (error) {
+        console.error('Error in /get-feed API:', error);
+        apiResponse(res, false, null, 'Failed to retrieve feed preferences: ' + error.message, 500);
+    }
+});
+
+// DELETE /api/remove-feed
+// Remove/reset user's feed preferences
+router.delete('/remove-feed', async (req, res) => {
+    try {
+        const { user_id, device_id } = req.body;
+
+        if (!user_id && !device_id) {
+            return apiResponse(res, false, null, 'Either user_id or device_id is required', 400);
+        }
+
+        let deleteResult;
+
+        if (user_id) {
+            deleteResult = await supabase
+                .from('user_feeds')
+                .delete()
+                .eq('user_id', user_id);
+        } else if (device_id) {
+            deleteResult = await supabase
+                .from('user_feeds')
+                .delete()
+                .eq('device_id', device_id);
+        }
+
+        if (deleteResult?.error) {
+            console.error('Error removing feed preferences:', deleteResult.error);
+            // If table doesn't exist, still return success
+            if (deleteResult.error.code === '42P01') {
+                return apiResponse(res, true, null, 'Feed preferences removed (simulated)');
+            }
+            throw deleteResult.error;
+        }
+
+        // Track removal in interactions
+        await supabase
+            .from('interactions')
+            .insert([{
+                user_id: user_id || null,
+                device_id: device_id || null,
+                interaction_type: 'feed_preferences_removed',
+                metadata: {
+                    action: 'remove'
+                },
+                created_at: new Date().toISOString()
+            }]);
+
+        apiResponse(res, true, null, 'Feed preferences removed successfully');
+
+    } catch (error) {
+        console.error('Error in /remove-feed API:', error);
+        apiResponse(res, false, null, 'Failed to remove feed preferences: ' + error.message, 500);
+    }
+});
+
 // POST /api/update-token
 // Update push notification token for a device
 router.post('/update-token', async (req, res) => {
