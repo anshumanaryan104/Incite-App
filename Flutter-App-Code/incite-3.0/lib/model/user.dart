@@ -1,6 +1,7 @@
 class Users {
   String? id;
   String? name;
+  String? username;
   String? email;
   String? password;
   String? apiToken;
@@ -22,6 +23,7 @@ class Users {
     try {
       id = jsonMap['id'].toString();
       name = jsonMap['name'] ?? '';
+      username = jsonMap['username'] ?? '';
       email = jsonMap['email'] ?? '';
       playerId = jsonMap['player_id'];
       phone = jsonMap['phone'] ?? '';
@@ -36,6 +38,7 @@ class Users {
     } catch (e) {
       id = '';
       name = '';
+      username = '';
       email = '';
       phone = '';
       apiToken = '';

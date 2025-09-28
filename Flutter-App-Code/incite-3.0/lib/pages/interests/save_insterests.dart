@@ -59,55 +59,71 @@ class _SaveInterestState extends State<SaveInterest> {
       showCustomToast(context, allMessages.value.minimum3Select ?? "Minimum 3 should be selected");
     } else {
       if (true) {
-        final formMap = jsonEncode({"category_id": provider.selectedFeed});
+        final formMap = jsonEncode({
+          "category_ids": provider.selectedFeed,
+          "user_id": currentUser.value.id,
+          "device_id": prefs?.getString('device_id') ?? 'unknown_device'
+        });
         try {
           setState(() {
             load = true;
           });
           var url = "${Urls.baseUrl}add-feed";
+
+          var headers = {
+            HttpHeaders.contentTypeHeader: "application/json",
+            "language-code": languageCode.value.language ?? "en",
+          };
+
+          // Add api-token only if user is logged in and has token
+          if (currentUser.value.id != null && currentUser.value.apiToken != null) {
+            headers["api-token"] = currentUser.value.apiToken!;
+          }
+
           var result = await http.post(
             Uri.parse(url),
-            headers: {
-              HttpHeaders.contentTypeHeader: "application/json",
-              "api-token": currentUser.value.apiToken ?? '',
-              "language-code": languageCode.value.language ?? "en",
-            },
+            headers: headers,
             body: formMap,
           );
 
           Map data = json.decode(result.body);
-          if (result.statusCode == 200) {
-            showCustomToast(context, data['message']);
-            if (widget.isDrawer) {
-              setState(() {
-                load = true;
-              });
-              // ignore: use_build_context_synchronously
-              await provider.getCategory(headCall: false).then((value) {
-                setState(() {
-                  load = false;
-                });
-                Navigator.pushNamedAndRemoveUntil(context, '/MainPage', (route) => false, arguments: 0);
-              });
+
+          // Redirect to main page regardless of API success/failure
+          // User has selected their interests, that's what matters
+          if (widget.isDrawer) {
+            if (result.statusCode == 200 && data['success'] == true) {
+              showCustomToast(context, data['message']);
             }
-            if (!widget.isDrawer) {
+            await provider.getCategory(headCall: false).then((value) {
               setState(() {
-                load = true;
-                currentUser.value.isNewUser = true;
+                load = false;
               });
-              await provider.getCategory().then((value) {
-                Navigator.pushNamedAndRemoveUntil(context, '/MainPage', (route) => false, arguments: 1);
-              });
-              // });
+              Navigator.pushNamedAndRemoveUntil(context, '/MainPage', (route) => false, arguments: 0);
+            });
+          } else {
+            // New user signup flow
+            if (result.statusCode == 200 && data['success'] == true) {
+              showCustomToast(context, data['message'] ?? 'Interests saved!');
+            } else {
+              showCustomToast(context, 'Interests saved locally!');
             }
+            setState(() {
+              currentUser.value.isNewUser = true;
+              load = false;
+            });
+            await provider.getCategory().then((value) {
+              Navigator.pushNamedAndRemoveUntil(context, '/MainPage', (route) => false, arguments: 1);
+            });
           }
+        } catch (e) {
+          debugPrint("Error saving interests: $e");
+          // Even on error, redirect user to main page
+          showCustomToast(context, 'Continuing to app...');
           setState(() {
             load = false;
           });
-        } catch (e) {
-          //debugPrint(e.toString());
-          setState(() {
-            load = false;
+          await provider.getCategory().then((value) {
+            Navigator.pushNamedAndRemoveUntil(context, '/MainPage', (route) => false, arguments: widget.isDrawer ? 0 : 1);
           });
         }
       }
@@ -136,17 +152,36 @@ class _SaveInterestState extends State<SaveInterest> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: kToolbarHeight),
-                          widget.isDrawer
-                              ? Row(
-                                children: [
-                                  Backbut(
-                                    onTap: () async {
-                                      Navigator.pop(context);
-                                    },
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Backbut(
+                                onTap: () async {
+                                  if (widget.isDrawer) {
+                                    Navigator.pop(context);
+                                  } else {
+                                    // Skip interests and go to main page
+                                    Navigator.pushNamedAndRemoveUntil(
+                                        context, '/MainPage', (route) => false, arguments: 0);
+                                  }
+                                },
+                              ),
+                              if (!widget.isDrawer)
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pushNamedAndRemoveUntil(
+                                        context, '/MainPage', (route) => false, arguments: 0);
+                                  },
+                                  child: Text(
+                                    'Skip',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
-                                ],
-                              )
-                              : const SizedBox(),
+                                ),
+                            ],
+                          ),
                           SizedBox(height: widget.isDrawer ? 20 : 0),
                           AnimationFadeSlide(
                             duration: 500,

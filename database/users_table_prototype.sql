@@ -136,3 +136,17 @@ CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 -- Update email to be optional
 ALTER TABLE users
 ALTER COLUMN email DROP NOT NULL;
+
+-- Add columns needed for user signup from Flutter app                                                                  │ │
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS phone TEXT,
+ADD COLUMN IF NOT EXISTS player_id TEXT,
+ADD COLUMN IF NOT EXISTS fcm_token TEXT,
+
+
+
+
+-- Add comment                                                                                  
+COMMENT ON COLUMN users.phone IS 'User phone number (optional)';                                
+COMMENT ON COLUMN users.player_id IS 'OneSignal player ID for push notifications';              
+COMMENT ON COLUMN users.fcm_token IS 'Firebase Cloud Messaging token';                          

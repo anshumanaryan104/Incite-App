@@ -80,10 +80,14 @@ router.post('/login', async (req, res) => {
 // Signup with username
 router.post('/signup', async (req, res) => {
     try {
-        const { username, password, email, name } = req.body;
+        const { username, password, email, name, phone, player_id, fcm_token } = req.body;
 
         if (!username || !password) {
             return apiResponse(res, false, null, 'Username and password are required', 400);
+        }
+
+        if (!email) {
+            return apiResponse(res, false, null, 'Email is required', 400);
         }
 
         if (password.length < 6) {
@@ -91,14 +95,27 @@ router.post('/signup', async (req, res) => {
         }
 
         // Check if username already exists
-        const { data: existing } = await supabase
+        const { data: existingUsername } = await supabase
             .from('users')
             .select('id')
             .eq('username', username.toLowerCase())
             .single();
 
-        if (existing) {
+        if (existingUsername) {
             return apiResponse(res, false, null, 'Username already taken', 400);
+        }
+
+        // Check if email already exists
+        if (email) {
+            const { data: existingEmail } = await supabase
+                .from('users')
+                .select('id')
+                .eq('email', email.toLowerCase())
+                .single();
+
+            if (existingEmail) {
+                return apiResponse(res, false, null, 'Email already registered', 400);
+            }
         }
 
         // Hash password
@@ -110,8 +127,11 @@ router.post('/signup', async (req, res) => {
             .insert([{
                 username: username.toLowerCase(),
                 hashed_password: hashedPassword,
-                email: email || null,
-                name: name || username
+                email: email ? email.toLowerCase() : null,
+                name: name || username,
+                phone: phone || null,
+                player_id: player_id || null,
+                fcm_token: fcm_token || null
             }])
             .select()
             .single();
@@ -125,6 +145,8 @@ router.post('/signup', async (req, res) => {
             username: newUser.username,
             email: newUser.email,
             name: newUser.name,
+            phone: newUser.phone,
+            is_new_user: true,
             created_at: newUser.created_at
         }, 'Signup successful', 201);
     } catch (error) {

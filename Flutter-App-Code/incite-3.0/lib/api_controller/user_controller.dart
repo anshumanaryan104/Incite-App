@@ -322,7 +322,7 @@ class UserProvider extends ControllerMVC {
       signupFormKey!.currentState!.save();
       repository.register(user, context).then((value) {
         var provider = Provider.of<AppProvider>(context, listen: false);
-        if (value != null && value.apiToken != null) {
+        if (value != null) {
           provider.clearLists();
           provider.addUserSession(isSignup: true);
 

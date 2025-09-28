@@ -816,6 +816,15 @@ class AppProvider extends ChangeNotifier {
     try {
       final String url = '${Urls.baseUrl}add-analytics';
 
+      String fcmToken = "";
+      try {
+        fcmToken = (Platform.isAndroid
+            ? await FirebaseMessaging.instance.getToken()
+            : await FirebaseMessaging.instance.getAPNSToken()) ?? "";
+      } catch (e) {
+        debugPrint("Firebase not initialized, skipping FCM token");
+      }
+
       var headers =
           currentUser.value.id != null
               ? {
@@ -825,11 +834,7 @@ class AppProvider extends ChangeNotifier {
               : {
                 HttpHeaders.contentTypeHeader: 'application/json',
                 "player-id": OneSignal.User.pushSubscription.id ?? "",
-                "fcm-token":
-                    (Platform.isAndroid
-                        ? await FirebaseMessaging.instance.getToken()
-                        : await FirebaseMessaging.instance.getAPNSToken()) ??
-                    "",
+                "fcm-token": fcmToken,
               };
       final response = await http
           .post(

@@ -112,8 +112,37 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
                         const SizedBox(height: 15),
                         TextFieldWidget(
-                          hint: allMessages.value.email ?? 'Email',
+                          hint: 'Username',
+                          onValidate: (v) {
+                            if (v!.isEmpty) {
+                              return 'Username is required';
+                            } else if (v.length < 3) {
+                              return 'Username must contain at least 3 characters';
+                            } else if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(v)) {
+                              return 'Username can only contain letters, numbers and underscore';
+                            }
+                            return null;
+                          },
+                          onSaved: (v) {
+                            setState(() {
+                              userProvider.user.username = v;
+                            });
+                          },
                           pos: 2,
+                          prefix: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 17),
+                            child: SvgPicture.asset(
+                              'assets/svg/name.svg',
+                              width: 20,
+                              height: 16,
+                            ),
+                          ),
+                          textAction: TextInputAction.next,
+                        ),
+                        const SizedBox(height: 15),
+                        TextFieldWidget(
+                          hint: allMessages.value.email ?? 'Email',
+                          pos: 3,
                           onValidate: (v) {
                             bool emailValid =
                                 RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(v!);
@@ -142,7 +171,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
                         const SizedBox(height: 15),
                         TextFieldWidget(
-                          pos: 3,
+                          pos: 4,
                           hint: allMessages.value.password ?? 'Password',
                           onValidate: (v) {
                             if (v!.isEmpty) {
@@ -189,7 +218,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         const SizedBox(height: 15),
                         TextFieldWidget(
                           hint: '${allMessages.value.phoneNumber} (optional)',
-                          pos: 4,
+                          pos: 5,
                           lengthFormatter: [
                             LengthLimitingTextInputFormatter(11),
                             PhoneNumberInputFormatter()

@@ -96,7 +96,17 @@ Future<Users?> register(Users user, BuildContext context) async {
   if (RegExp(
     r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$',
   ).hasMatch(user.email.toString())) {
+    String fcmToken = "";
+    try {
+      fcmToken = (Platform.isAndroid
+          ? await FirebaseMessaging.instance.getToken()
+          : await FirebaseMessaging.instance.getAPNSToken()) ?? "";
+    } catch (e) {
+      debugPrint("Firebase not initialized, skipping FCM token");
+    }
+
     final msg = jsonEncode({
+      "username": user.username!.trim(),
       "email": user.email!.trim(),
       "name": user.name!.trim(),
       "phone": user.phone!.trim(),
@@ -104,9 +114,7 @@ Future<Users?> register(Users user, BuildContext context) async {
       "player_id": PushNotification.notificationType == NotificationType.onesignal
           ? OneSignal.User.pushSubscription.id
           : "",
-      "fcm_token": Platform.isAndroid
-          ? await FirebaseMessaging.instance.getToken()
-          : await FirebaseMessaging.instance.getAPNSToken(),
+      "fcm_token": fcmToken,
     });
 
     final String url = '${Urls.baseUrl}signup';

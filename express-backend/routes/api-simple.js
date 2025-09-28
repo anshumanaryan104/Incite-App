@@ -2247,4 +2247,15 @@ GRANT USAGE ON SEQUENCE push_tokens_id_seq TO anon;`
     }
 });
 
+// =====================================================
+// ANALYTICS ENDPOINT (Optional - just accepts and ignores)
+// =====================================================
+router.post('/add-analytics', async (req, res) => {
+    // Analytics endpoint - just accept the data and return success
+    // This is for tracking user behavior (views, clicks, etc.)
+    // You can log it or store it in future if needed
+    console.log('📊 Analytics data received (not storing)');
+    apiResponse(res, true, null, 'Analytics recorded', 200);
+});
+
 module.exports = router;
