@@ -373,6 +373,18 @@ if (USE_SUPABASE) {
     // Add Supabase routes
     app.use('/api', supabaseRoutes);
 
+    // Add User Auth routes
+    const userAuthRoutes = require('./routes/user-auth');
+    app.use('/api', userAuthRoutes);
+
+    // Add Admin routes
+    const adminAuthRoutes = require('./routes/admin-auth');
+    const adminArticleRoutes = require('./routes/admin-articles');
+    const adminCategoryRoutes = require('./routes/admin-categories');
+    app.use('/api/admin', adminAuthRoutes);
+    app.use('/api/admin/articles', adminArticleRoutes);
+    app.use('/api/admin/categories', adminCategoryRoutes);
+
     // Add 404 handler after routes
     app.use((req, res) => {
         console.log(`❌ 404 Not Found: ${req.url}`);

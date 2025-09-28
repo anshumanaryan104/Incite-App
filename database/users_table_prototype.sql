@@ -76,25 +76,63 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- =====================================================
--- THAT'S IT! SUPER SIMPLE!
--- =====================================================
+-- 1. Create admin_users table
+CREATE TABLE admin_users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    hashed_password TEXT NOT NULL,
+    role VARCHAR(20) DEFAULT 'admin',
+    is_active BOOLEAN DEFAULT true,
+    last_login_at TIMESTAMP,
+    last_login_ip VARCHAR(45),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
 
-/*
-Quick Test Queries:
+  -- 2. Create audit_logs table
+ CREATE TABLE audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    table_name VARCHAR(50) NOT NULL,
+    record_id INTEGER NOT NULL,
+    action VARCHAR(20) NOT NULL,
+    admin_username VARCHAR(50) NOT NULL,
+    old_values JSONB,
+    new_values JSONB,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
 
-1. Add a user:
-INSERT INTO users (name, email, preferred_categories)
-VALUES ('Your Name', 'your@email.com', ARRAY[1, 2, 3]);
+  -- 3. Update articles table (add audit columns)
+ALTER TABLE articles
+ADD COLUMN IF NOT EXISTS created_by VARCHAR(50),
+ADD COLUMN IF NOT EXISTS updated_by VARCHAR(50),
+ADD COLUMN IF NOT EXISTS deleted_by VARCHAR(50),
+ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
 
-2. Get user's feed:
-SELECT * FROM get_user_feed(1);
+-- 4. Create indexes for performance
+  CREATE INDEX idx_audit_logs_username ON audit_logs(admin_username);
+  CREATE INDEX idx_audit_logs_table_record ON audit_logs(table_name, record_id);
+  CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at DESC);
+  CREATE INDEX idx_articles_created_by ON articles(created_by);
 
-3. Add a bookmark:
-INSERT INTO user_bookmarks (user_id, article_id) VALUES (1, 1);
 
-4. Update user preferences:
-UPDATE users
-SET preferred_categories = ARRAY[1, 3, 5]
-WHERE id = 1;
-*/
+  -- Add username column and hashed_password to users table
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS username TEXT UNIQUE,
+ADD COLUMN IF NOT EXISTS hashed_password TEXT;
+
+-- Delete all existing users (as requested)
+DELETE FROM users;
+
+-- Make username required (NOT NULL)
+ALTER TABLE users
+ALTER COLUMN username SET NOT NULL;
+
+-- Create index on username for faster lookups
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+
+-- Update email to be optional
+ALTER TABLE users
+ALTER COLUMN email DROP NOT NULL;

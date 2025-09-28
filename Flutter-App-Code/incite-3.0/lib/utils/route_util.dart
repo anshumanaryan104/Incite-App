@@ -2,6 +2,8 @@ import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';
 import 'package:incite/model/blog.dart';
+import 'package:incite/pages/admin/admin_list.dart';
+import 'package:incite/pages/admin/category_list.dart';
 import 'package:incite/pages/auth/forgot_password.dart';
 import 'package:incite/pages/auth/otp.dart';
 import 'package:incite/pages/auth/reset_password.dart';
@@ -114,6 +116,12 @@ class RouteGenerator {
             widget: BlogAd(
           onTap: () {},
         ));
+
+      case '/AdminList':
+        return PagingTransform(widget: const AdminListPage());
+
+      case '/CategoryList':
+        return PagingTransform(widget: const CategoryListPage());
 
       default:
         {

@@ -211,16 +211,13 @@ class _LoginPageState extends State<LoginPage> {
                             const SizedBox(height: 40),
 
                             TextFieldWidget(
-                              hint: allMessages.value.email ?? 'Email',
+                              hint: 'Username',
                               pos: 2,
                               onValidate: (v) {
-                                bool emailValid = RegExp(
-                                  r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                                ).hasMatch(v!);
-                                if (v.isEmpty) {
-                                  return "${allMessages.value.email} ${allMessages.value.isRequired}";
-                                } else if (!emailValid) {
-                                  return allMessages.value.enterAValidEmail ?? 'Enter a valid email';
+                                if (v!.isEmpty) {
+                                  return "Username is required";
+                                } else if (v.length < 3) {
+                                  return "Username must be at least 3 characters";
                                 }
                                 return null;
                               },
@@ -231,7 +228,7 @@ class _LoginPageState extends State<LoginPage> {
                               },
                               prefix: Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 17),
-                                child: SvgPicture.asset('assets/svg/mail.svg', width: 20, height: 16),
+                                child: Icon(Icons.person, size: 20),
                               ),
                               textAction: TextInputAction.next,
                             ),
@@ -243,8 +240,8 @@ class _LoginPageState extends State<LoginPage> {
                               onValidate: (v) {
                                 if (v!.isEmpty) {
                                   return '${allMessages.value.password} ${allMessages.value.isRequired}';
-                                } else if (v.length <= 7) {
-                                  return allMessages.value.passwordShouldBeMoreThanThereeCharacter;
+                                } else if (v.length < 6) {
+                                  return 'Password must be at least 6 characters';
                                 }
                                 return null;
                               },

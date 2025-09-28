@@ -17,12 +17,13 @@ const apiResponse = (res, success, data = null, message = null, statusCode = 200
 // =====================================================
 
 // Get all articles with categories (main feed)
-router.get('/blog-list', async (req, res) => {
+// Support both /view-all-post and /blog-list endpoints
+router.get(['/view-all-post', '/blog-list'], async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const from = (page - 1) * limit;
-        const to = from + limit - 1;
+        const count = parseInt(req.query.count) || parseInt(req.query.limit) || 10;
+        const from = (page - 1) * count;
+        const to = from + count - 1;
 
         // Get all active categories
         const { data: categories, error: catError } = await supabase
@@ -38,7 +39,7 @@ router.get('/blog-list', async (req, res) => {
         const formattedCategories = await Promise.all(
             categories.map(async (category) => {
                 // Get articles for this category
-                const { data: articles, error: artError, count } = await supabase
+                const { data: articles, error: artError, count: totalCount } = await supabase
                     .from('articles')
                     .select('*', { count: 'exact' })
                     .eq('category_id', category.id)
@@ -75,18 +76,18 @@ router.get('/blog-list', async (req, res) => {
                             source_name: article.source_name || 'News App'
                         })),
                         current_page: page,
-                        first_page_url: `/api/blog-list?page=1`,
+                        first_page_url: `/api/view-all-post?page=1`,
                         from: from + 1,
-                        last_page: Math.ceil((count || 0) / limit),
-                        last_page_url: `/api/blog-list?page=${Math.ceil((count || 0) / limit)}`,
-                        next_page_url: page < Math.ceil((count || 0) / limit)
-                            ? `/api/blog-list?page=${page + 1}`
+                        last_page: Math.ceil((totalCount || 0) / count),
+                        last_page_url: `/api/view-all-post?page=${Math.ceil((totalCount || 0) / count)}`,
+                        next_page_url: page < Math.ceil((totalCount || 0) / count)
+                            ? `/api/view-all-post?page=${page + 1}`
                             : null,
-                        path: '/api/blog-list',
-                        per_page: limit,
-                        prev_page_url: page > 1 ? `/api/blog-list?page=${page - 1}` : null,
-                        to: Math.min(to + 1, count || 0),
-                        total: count || 0
+                        path: '/api/view-all-post',
+                        per_page: count,
+                        prev_page_url: page > 1 ? `/api/view-all-post?page=${page - 1}` : null,
+                        to: Math.min(to + 1, totalCount || 0),
+                        total: totalCount || 0
                     },
                     created_at: category.created_at,
                     updated_at: category.updated_at
@@ -96,7 +97,7 @@ router.get('/blog-list', async (req, res) => {
 
         apiResponse(res, true, formattedCategories);
     } catch (error) {
-        console.error('Error in /blog-list:', error);
+        console.error('Error in /view-all-post:', error);
         apiResponse(res, false, null, error.message, 500);
     }
 });
@@ -1720,26 +1721,7 @@ router.get('/localisation-list', (req, res) => {
 });
 
 // Mock login endpoint (returns dummy data)
-router.post('/login', (req, res) => {
-    const { email } = req.body;
-    apiResponse(res, true, {
-        id: 'anonymous',
-        name: 'Guest User',
-        email: email || 'guest@newsapp.com',
-        token: 'no-auth-required'
-    }, 'Login successful');
-});
-
-// Mock signup endpoint (returns dummy data)
-router.post('/signup', (req, res) => {
-    const { email, name } = req.body;
-    apiResponse(res, true, {
-        id: 'anonymous',
-        name: name || 'Guest User',
-        email: email || 'guest@newsapp.com',
-        token: 'no-auth-required'
-    }, 'Signup successful');
-});
+// Login and signup moved to user-auth.js routes
 
 // POST /api/add-feed
 // Store user's selected interests/categories for personalized feed

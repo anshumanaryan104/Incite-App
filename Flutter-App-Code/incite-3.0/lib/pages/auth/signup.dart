@@ -69,7 +69,12 @@ class _SignUpPageState extends State<SignUpPage> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const SizedBox(height: 30),
-                        const AppIcon(isRectangle: true, width: 130),
+                        Image.asset(
+                          'assets/images/logo.png',
+                          width: 130,
+                          height: 130,
+                          fit: BoxFit.contain,
+                        ),
                         const SizedBox(height: 10),
                         Text(allMessages.value.signUp ?? 'Sign up',
                             style: const TextStyle(

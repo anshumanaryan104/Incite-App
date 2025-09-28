@@ -129,6 +129,7 @@ class UserProvider extends ControllerMVC {
   }
 
   Future<void> checkSettingUpdate() async {
+    print('🔵 checkSettingUpdate called, URL: ${Urls.baseUrl}setting-list');
     // Send a HEAD request to retrieve the etag header
     //  await checkUpdate().then((etag) async{
     //  try {
@@ -166,11 +167,14 @@ class UserProvider extends ControllerMVC {
           });
         }
       }
-    } on SocketException {
+    } on SocketException catch (e) {
+      print('🔴 SocketException in checkSettingUpdate: $e');
       // showCustomToast(context, allMessages.value.noInternetConnection ?? 'No Internet Connection');
-    } on TimeoutException {
+    } on TimeoutException catch (e) {
+      print('🔴 TimeoutException in checkSettingUpdate: $e');
       //showCustomToast(context, 'Connection Timeout');
-    } on Exception {
+    } on Exception catch (e) {
+      print('🔴 Exception in checkSettingUpdate: $e');
       allSettings.value.enableMaintainanceMode = '1';
       allSettings.value.maintainanceTitle = 'Server Under Maintenance';
       allSettings.value.maintainanceShortText = 'Please contact the server administrator at '

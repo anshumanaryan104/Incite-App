@@ -30,51 +30,58 @@ String? deviceToken;
 
 Future<Users?> signin(Users user, BuildContext context) async {
   try {
-    if (RegExp(
-      r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$',
-    ).hasMatch(user.email.toString())) {
-      final msg = jsonEncode({
-        "email": user.email,
-        "player_id": PushNotification.notificationType == NotificationType.onesignal
-            ? OneSignal.User.pushSubscription.id
-            : "",
-        "password": user.password,
-        "fcm_token": Platform.isAndroid
-            ? await FirebaseMessaging.instance.getToken()
-            : await FirebaseMessaging.instance.getAPNSToken(),
-      });
-      final url = Uri.parse('${Urls.baseUrl}login');
-      final response = await http.post(
-        url,
-        body: msg,
-        headers: {
-          HttpHeaders.contentTypeHeader: 'application/json',
-          "language-code": languageCode.value.language ?? "en",
-        },
-      );
-      var res = json.decode(response.body);
+    final username = user.email;
 
-      if (res['success'] == true) {
-        res['data']['login_from'] = 'email';
-        setCurrentUser(res);
-        currentUser.value = Users.fromJSON(res['data']);
-        currentUser.value.isPageHome = true;
+    final checkUrl = Uri.parse('${Urls.baseUrl}check-username');
+    final checkResponse = await http.post(
+      checkUrl,
+      body: jsonEncode({"username": username}),
+      headers: {
+        HttpHeaders.contentTypeHeader: 'application/json',
+        "language-code": languageCode.value.language ?? "en",
+      },
+    );
+    var checkRes = json.decode(checkResponse.body);
 
-        currentUser.value.id = res['data']['id'].toString();
-        if (currentUser.value.langCode != null) {
-          for (var element in allLanguages) {
-            if (element.language == currentUser.value.langCode) {
-              languageCode.value = element;
-            }
+    if (checkRes['success'] == true && checkRes['data']['exists'] == false) {
+      showCustomToast(context, 'Username not found. Please sign up first.');
+      Navigator.pushNamed(context, '/SignUpPage');
+      return null;
+    }
+
+    final msg = jsonEncode({
+      "username": username,
+      "password": user.password,
+    });
+    final url = Uri.parse('${Urls.baseUrl}login');
+    final response = await http.post(
+      url,
+      body: msg,
+      headers: {
+        HttpHeaders.contentTypeHeader: 'application/json',
+        "language-code": languageCode.value.language ?? "en",
+      },
+    );
+    var res = json.decode(response.body);
+
+    if (res['success'] == true) {
+      res['data']['login_from'] = 'email';
+      setCurrentUser(res);
+      currentUser.value = Users.fromJSON(res['data']);
+      currentUser.value.isPageHome = true;
+
+      currentUser.value.id = res['data']['id'].toString();
+      if (currentUser.value.langCode != null) {
+        for (var element in allLanguages) {
+          if (element.language == currentUser.value.langCode) {
+            languageCode.value = element;
           }
         }
-        showCustomToast(context, res['message']);
-        return currentUser.value;
-      } else {
-        showCustomToast(context, res['message']);
-        return null;
       }
+      showCustomToast(context, res['message']);
+      return currentUser.value;
     } else {
+      showCustomToast(context, res['message']);
       return null;
     }
   } on SocketException {

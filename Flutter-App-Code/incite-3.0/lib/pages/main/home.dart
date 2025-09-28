@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ import '../../splash_screen.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/image_util.dart';
 import '../../widgets/shimmer.dart';
+import '../admin/admin_login.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.onChanged, this.initial = false, required this.menuTapped});
@@ -46,6 +48,9 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   late UserProvider userProvider;
 
   GlobalKey<RefreshIndicatorState> refreshkey = GlobalKey<RefreshIndicatorState>();
+
+  int _logoTapCount = 0;
+  Timer? _logoTapTimer;
 
   @override
   void initState() {
@@ -143,7 +148,29 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                 Expanded(
                   child: Row(
                     children: [
-                      const RectangleAppIcon(),
+                      GestureDetector(
+                        onTap: () {
+                          _logoTapCount++;
+
+                          if (_logoTapCount == 1) {
+                            _logoTapTimer = Timer(const Duration(seconds: 3), () {
+                              _logoTapCount = 0;
+                            });
+                          }
+
+                          if (_logoTapCount == 5) {
+                            _logoTapTimer?.cancel();
+                            _logoTapCount = 0;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AdminLoginPage(),
+                              ),
+                            );
+                          }
+                        },
+                        child: const RectangleAppIcon(),
+                      ),
                       const Spacer(),
                       TapInk(
                         radius: 100,

@@ -302,7 +302,8 @@ void main() async {
     //   await oneSignalInitialise();
     // }
     await getCurrentUser();
-    await getInitialNotification();
+    // Disable Firebase notification check since Firebase is not initialized
+    // await getInitialNotification();
   } catch (e) {
     prefs = await SharedPreferences.getInstance();
     prefs!.remove('setNotification');
