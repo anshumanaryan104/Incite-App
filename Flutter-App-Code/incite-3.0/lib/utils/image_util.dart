@@ -18,6 +18,7 @@ class SvgImg {
    static String play = '${svg}play.svg';
   static String share = '${svg}share.svg';
   static String lock = '${svg}lock.svg';
+  static String ai = '${svg}ai.svg';
     static String themeMode = '${svg}theme-mode.svg';
   static String arrowRight = '${svg}arrow_right.svg';
 

@@ -714,14 +714,31 @@ class _BlogPageState extends State<BlogPage> with WidgetsBindingObserver {
                               ? const SizedBox()
                               : Positioned(
                                   top: blog.videoUrl != ''
-                                      ? height10(context) * 25.5
-                                      : height10(context) * 26.35,
-                                  child: Container(
-                                    width: size(context).width,
-                                    alignment: Alignment.center,
+                                      ? height10(context) * 25.5 - 4
+                                      : height10(context) * 26.35 - 4,
+                                  left: -5,
+                                  right: -5,
+                                  child: Material(
+                                    elevation: 10,
                                     color: Theme.of(context).scaffoldBackgroundColor,
-                                    padding:
-                                        EdgeInsets.only(bottom: height10(context) - 5, left: 16, right: 16),
+                                    child: Container(
+                                      width: size(context).width + 10,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).scaffoldBackgroundColor,
+                                        border: Border(
+                                          top: BorderSide(
+                                            color: Theme.of(context).primaryColor,
+                                            width: 2,
+                                          ),
+                                          bottom: BorderSide(
+                                            color: Theme.of(context).primaryColor,
+                                            width: 2,
+                                          ),
+                                        ),
+                                      ),
+                                      padding:
+                                          EdgeInsets.only(top: 8, bottom: 8, left: 17, right: 17),
                                     child: Row(
                                       crossAxisAlignment: CrossAxisAlignment.center,
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -747,8 +764,12 @@ class _BlogPageState extends State<BlogPage> with WidgetsBindingObserver {
                                                       name: blog.categoryName.toString()),
                                                 ],
                                         ),
-                                        VisibilityDetector(
-                                          key: const Key("s"),
+                                        Expanded(
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            children: [
+                                              VisibilityDetector(
+                                                key: const Key("s"),
                                           onVisibilityChanged: (visibilityInfo) async {
                                             var visiblePercentage = visibilityInfo.visibleFraction * 100.0;
 
@@ -779,6 +800,52 @@ class _BlogPageState extends State<BlogPage> with WidgetsBindingObserver {
                                           },
                                           child: PostFeatureWrap(
                                               isVolume: isVolume,
+                                              onAskAI: () {
+                                                // Handle Ask AI functionality
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    return AlertDialog(
+                                                      title: const Text('Ask AI'),
+                                                      content: Column(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Text(
+                                                            'AI Assistant for:',
+                                                            style: TextStyle(
+                                                              fontWeight: FontWeight.bold,
+                                                              color: Theme.of(context).primaryColor,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(height: 8),
+                                                          Text(
+                                                            blog.title ?? '',
+                                                            maxLines: 2,
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                          const SizedBox(height: 16),
+                                                          const Text(
+                                                            'AI feature coming soon! You will be able to ask questions about this article.',
+                                                            style: TextStyle(fontSize: 14),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () => Navigator.pop(context),
+                                                          child: Text(
+                                                            'Close',
+                                                            style: TextStyle(
+                                                              color: Theme.of(context).primaryColor,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                              },
                                               onVoice: () async {
                                                 if (allSettings.value.googleApikey != null &&
                                                     allSettings.value.isVoiceEnabled == true) {
@@ -874,11 +941,15 @@ class _BlogPageState extends State<BlogPage> with WidgetsBindingObserver {
                                                   setState(() {});
                                                 });
                                               }),
+                                              )
+                                            ],
+                                          ),
                                         )
                                       ],
                                     ),
                                   ),
                                 ),
+                              ),
                         ],
                       ),
                     ))),

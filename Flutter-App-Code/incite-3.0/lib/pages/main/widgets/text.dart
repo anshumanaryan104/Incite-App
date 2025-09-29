@@ -21,9 +21,11 @@ class PostFeatureWrap extends StatefulWidget {
     required this.onVoice,
     this.isBookmarkContains = false,
     required this.provider,
+    this.onAskAI,
   });
 
   final VoidCallback onShare, onVoice, onBookmark;
+  final VoidCallback? onAskAI;
   final Blog model;
   final bool isVolume, isBookmarkContains;
   final AppProvider provider;
@@ -41,6 +43,13 @@ class _PostFeatureWrapState extends State<PostFeatureWrap> {
         colorFilterMode(context, color: dark(context) ? ColorUtil.white : Theme.of(context).primaryColor);
     return Row(
       children: [
+        if (widget.onAskAI != null)
+          TapInk(
+              pad: 4,
+              radius: 6,
+              onTap: widget.onAskAI!,
+              child: SvgPicture.asset(SvgImg.ai, width: 24, height: 24, colorFilter: colorFilter2)),
+        if (widget.onAskAI != null) const SizedBox(width: 10),
         TapInk(
             key: ValueKey(widget.model.isBookmark),
             radius: 6,
@@ -48,11 +57,11 @@ class _PostFeatureWrapState extends State<PostFeatureWrap> {
             onTap: widget.onBookmark,
             child: SvgPicture.asset(
               widget.provider.permanentIds.contains(widget.model.id) ? SvgImg.fillBook : SvgImg.bookmark,
-              width: 25,
-              height: 25,
+              width: 24,
+              height: 24,
               colorFilter: colorFilter2,
             )),
-        allSettings.value.isVoiceEnabled == false ? const SizedBox() : const SizedBox(width: 12),
+        allSettings.value.isVoiceEnabled == false ? const SizedBox() : const SizedBox(width: 10),
         allSettings.value.isVoiceEnabled == false
             ? const SizedBox()
             : TapInk(
@@ -60,8 +69,8 @@ class _PostFeatureWrapState extends State<PostFeatureWrap> {
                 radius: 6,
                 onTap: widget.onVoice,
                 child: SizedBox(
-                    width: 28,
-                    height: 28,
+                    width: 26,
+                    height: 26,
                     child: Container(
                       decoration: BoxDecoration(
                           shape: BoxShape.circle,
@@ -72,13 +81,13 @@ class _PostFeatureWrapState extends State<PostFeatureWrap> {
                           ? Padding(
                               padding: const EdgeInsets.all(2),
                               child: Icon(Icons.pause_rounded,
-                                  size: 22,
+                                  size: 20,
                                   color: dark(context) ? Colors.white : Theme.of(context).primaryColor),
                             )
                           : Padding(
                               padding: const EdgeInsets.all(2.0),
                               child: Icon(Icons.play_arrow_rounded,
-                                  size: 22,
+                                  size: 20,
                                   color: dark(context) ? Colors.white : Theme.of(context).primaryColor),
                             ),
                     ))),
@@ -87,7 +96,7 @@ class _PostFeatureWrapState extends State<PostFeatureWrap> {
             pad: 4,
             radius: 6,
             onTap: widget.onShare,
-            child: SvgPicture.asset(SvgImg.share, width: 26, height: 26, colorFilter: colorFilter2)),
+            child: SvgPicture.asset(SvgImg.share, width: 24, height: 24, colorFilter: colorFilter2)),
       ],
     );
   }
