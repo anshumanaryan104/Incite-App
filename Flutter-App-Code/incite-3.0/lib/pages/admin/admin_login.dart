@@ -15,7 +15,8 @@ import 'package:http/http.dart' as http;
 
 import '../../splash_screen.dart';
 import '../../urls/url.dart';
-import '../auth/signup.dart';
+// Signup removed for MVP
+import 'package:incite/widgets/app_icons.dart';
 import 'admin_dashboard.dart';
 
 class AdminLoginPage extends StatefulWidget {

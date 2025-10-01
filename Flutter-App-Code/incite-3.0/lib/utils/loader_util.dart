@@ -8,7 +8,8 @@ import 'package:incite/api_controller/user_controller.dart';
 import 'package:incite/main.dart';
 import 'package:incite/model/blog.dart';
 import 'package:incite/pages/main/blog.dart';
-import 'package:incite/pages/main/dashboard.dart';
+// Dashboard removed - using BlogWrap
+import 'package:incite/pages/main/blog_wrap.dart';
 import 'package:incite/splash_screen.dart';
 import 'package:incite/widgets/loader.dart';
 import 'package:provider/provider.dart';
@@ -68,16 +69,10 @@ class _LoaderState extends State<Loader> {
               Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => DashboardPage(
-                          key: UniqueKey(),
-                          index: 0,
-                          bottomIndex: 1,
-                          isFromVideo: true,
-                          action: widget.action == 'Share'
-                              ? BlogOptionType.share
-                              : widget.action == 'Bookmark'
-                                  ? BlogOptionType.bookmark
-                                  : null)),
+                      builder: (context) {
+                        Navigator.pushNamedAndRemoveUntil(context, "/BlogWrap", (route) => false, arguments: [0, false, null]);
+                        return Container();
+                      }),
                   (route) => false);
               // shortslikesIds.forEach((e){
               //   preloadProvider.setLike();
@@ -86,8 +81,7 @@ class _LoaderState extends State<Loader> {
             }
           });
         } else {
-          Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (context) => const DashboardPage(index: 1)), (route) => false);
+          Navigator.pushNamedAndRemoveUntil(context, "/BlogWrap", (route) => false, arguments: [0, false, null]);
         }
       } else {
         await blogDetail(blog.id.toString()).then((value) async {
@@ -103,18 +97,7 @@ class _LoaderState extends State<Loader> {
                   setState(() {});
                   //  await Future.delayed(const Duration(seconds: 2));
 
-                  Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => DashboardPage(
-                              index: 1,
-                              isLoad: false,
-                              action: widget.action == "Share"
-                                  ? BlogOptionType.share
-                                  : widget.action == "Bookmark"
-                                      ? BlogOptionType.bookmark
-                                      : null)),
-                      (route) => false);
+                  Navigator.pushNamedAndRemoveUntil(context, "/BlogWrap", (route) => false, arguments: [0, false, null]);
                 });
               });
             } else {
@@ -131,20 +114,7 @@ class _LoaderState extends State<Loader> {
 
                 // await Future.delayed(const Duration(seconds: 2));
 
-                Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => DashboardPage(
-                              index: 1,
-                              fromInitial: false,
-                              isLoad: false,
-                              action: widget.action == "Share"
-                                  ? BlogOptionType.share
-                                  : widget.action == "Bookmark"
-                                      ? BlogOptionType.bookmark
-                                      : null,
-                            )),
-                    (route) => false);
+                Navigator.pushNamedAndRemoveUntil(context, "/BlogWrap", (route) => false, arguments: [0, false, null]);
               });
             }
             // inactiveState(value);
@@ -160,20 +130,7 @@ class _LoaderState extends State<Loader> {
               blogListHolder.setList(provider.allNews as DataModel);
               setState(() {});
 
-              Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => DashboardPage(
-                            index: 1,
-                            fromInitial: false,
-                            isLoad: false,
-                            action: widget.action == "Share"
-                                ? BlogOptionType.share
-                                : widget.action == "Bookmark"
-                                    ? BlogOptionType.bookmark
-                                    : null,
-                          )),
-                  (route) => false);
+              Navigator.pushNamedAndRemoveUntil(context, "/BlogWrap", (route) => false, arguments: [0, false, null]);
               // await activeState(value);
             });
           }

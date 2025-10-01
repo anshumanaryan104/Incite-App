@@ -2,12 +2,13 @@ import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';
 import 'package:incite/model/blog.dart';
+import 'package:incite/pages/admin/admin_dashboard.dart';
 import 'package:incite/pages/admin/admin_list.dart';
-import 'package:incite/pages/admin/category_list.dart';
+// Category functionality removed
 import 'package:incite/pages/auth/forgot_password.dart';
 import 'package:incite/pages/auth/otp.dart';
 import 'package:incite/pages/auth/reset_password.dart';
-import 'package:incite/pages/auth/signup.dart';
+// Signup page removed for MVP
 import 'package:incite/pages/e_news.dart';
 import 'package:incite/pages/interests/save_insterests.dart';
 import 'package:incite/pages/main/blog_wrap.dart';
@@ -19,7 +20,7 @@ import '../pages/auth/login.dart';
 import '../pages/bookmark/bookmark.dart';
 import '../pages/language/language_select.dart';
 import '../pages/main/blog.dart';
-import '../pages/main/dashboard.dart';
+// Dashboard removed - using BlogWrap directly
 import '../pages/main/live_news.dart';
 import '../pages/main/widgets/blog_ad.dart';
 import '../pages/profile/user_profile.dart';
@@ -34,16 +35,14 @@ class RouteGenerator {
       case '/':
         return PagingTransform(widget: const SplashScreen());
 
-      case '/SignUpPage':
-        return PagingTransform(widget: const SignUpPage());
+      // SignUpPage route removed for MVP - admin login only
 
       case '/LanguageSelection':
         return PagingTransform(
           widget: LanguagePage(isSetting: args ?? false),
         );
 
-      case '/MainPage':
-        return PagingTransform(widget: DashboardPage(index: args ?? 0));
+      // MainPage removed - using BlogWrap directly
 
       case '/SaveInterests':
         return PagingTransform(widget: SaveInterest(isDrawer: args));
@@ -120,8 +119,10 @@ class RouteGenerator {
       case '/AdminList':
         return PagingTransform(widget: const AdminListPage());
 
-      case '/CategoryList':
-        return PagingTransform(widget: const CategoryListPage());
+      // CategoryList route removed
+
+      case '/AdminDashboard':
+        return PagingTransform(widget: const AdminDashboard());
 
       default:
         {

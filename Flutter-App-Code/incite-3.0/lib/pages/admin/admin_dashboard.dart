@@ -24,12 +24,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
   bool isLoading = true;
   List<dynamic> articles = [];
   List<dynamic> filteredArticles = [];
-  List<dynamic> categories = [];
+  // Categories removed
   String? adminToken;
   String? adminUsername;
 
   final TextEditingController _searchController = TextEditingController();
-  int? selectedCategoryFilter;
 
   @override
   void initState() {
@@ -55,24 +54,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
       return;
     }
 
-    await _fetchCategories();
+    // Category fetching removed
     await _fetchArticles();
-  }
-
-  Future<void> _fetchCategories() async {
-    try {
-      final String url = '${Urls.baseUrl}blog-category-list';
-      final response = await http.get(Uri.parse(url));
-      final data = json.decode(response.body);
-
-      if (data['success'] == true) {
-        setState(() {
-          categories = data['data'] ?? [];
-        });
-      }
-    } catch (e) {
-      // Silently fail - categories are optional for filtering
-    }
   }
 
   void _filterArticles() {
@@ -82,12 +65,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       filteredArticles = articles.where((article) {
         final title = (article['title'] ?? '').toLowerCase();
         final description = (article['description'] ?? '').toLowerCase();
-        final matchesSearch = query.isEmpty || title.contains(query) || description.contains(query);
-
-        final matchesCategory = selectedCategoryFilter == null ||
-                                article['category_id'] == selectedCategoryFilter;
-
-        return matchesSearch && matchesCategory;
+        return query.isEmpty || title.contains(query) || description.contains(query);
       }).toList();
     });
   }
@@ -218,13 +196,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           statusBarColor: Colors.transparent,
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.category),
-            tooltip: 'Manage Categories',
-            onPressed: () {
-              Navigator.pushNamed(context, '/CategoryList');
-            },
-          ),
+          // Category management removed
           IconButton(
             icon: const Icon(Icons.people),
             tooltip: 'Manage Admins',
@@ -284,47 +256,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     contentPadding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.filter_list, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<int?>(
-                            isExpanded: true,
-                            hint: const Text('Filter by Category'),
-                            value: selectedCategoryFilter,
-                            items: [
-                              const DropdownMenuItem<int?>(
-                                value: null,
-                                child: Text('All Categories'),
-                              ),
-                              ...categories.map<DropdownMenuItem<int?>>((category) {
-                                return DropdownMenuItem<int?>(
-                                  value: category['id'],
-                                  child: Text(category['name'] ?? 'Unnamed'),
-                                );
-                              }).toList(),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                selectedCategoryFilter = value;
-                                _filterArticles();
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                // Category filter removed
               ],
             ),
           ),
@@ -450,23 +382,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 ],
               ),
               const SizedBox(height: 8),
-              if (article['categories'] != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _parseColor(article['categories']['color']) ?? Colors.blue,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    article['categories']['name'] ?? 'Uncategorized',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.white,
-                      fontFamily: 'Roboto',
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 8),
+              // Category badge removed
               Row(
                 children: [
                   Icon(Icons.person, size: 14, color: Colors.grey[600]),
@@ -501,15 +417,5 @@ class _AdminDashboardState extends State<AdminDashboard> {
         ),
       ),
     );
-  }
-
-  Color? _parseColor(String? colorString) {
-    if (colorString == null || colorString.isEmpty) return null;
-    try {
-      final hexColor = colorString.replaceAll('#', '');
-      return Color(int.parse('FF$hexColor', radix: 16));
-    } catch (e) {
-      return null;
-    }
   }
 }

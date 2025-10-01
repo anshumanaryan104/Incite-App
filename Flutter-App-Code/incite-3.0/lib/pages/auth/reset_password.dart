@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:incite/api_controller/user_controller.dart';
-import 'package:incite/pages/auth/signup.dart';
+// Signup removed for MVP
+import 'package:incite/widgets/app_icons.dart';
 import 'package:incite/widgets/loader.dart';
 
 import '../../utils/color_util.dart';
@@ -89,7 +90,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                       ),
                        const Spacer(),
                        if(widget.isChange == true)
-                       const AppIcon(width: 100,height: 100),
+                       AppIcon(width: 100,height: 100),
                        const SizedBox(height:30),
                       Text( widget.isChange ? allMessages.value.resetPassword ?? 'Reset password' : allMessages.value.changePassword ??  'Change password',
                        style: const TextStyle(

@@ -48,8 +48,8 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   FutureOr<void> switchToPage() {
-    // Skip login check - go directly to main page
-    Navigator.pushNamedAndRemoveUntil(context, '/MainPage', arguments: 1, (route) => false);
+    // Navigate to login page for admin login or skip
+    Navigator.pushNamedAndRemoveUntil(context, '/LoginPage', (route) => false);
   }
 
   @override

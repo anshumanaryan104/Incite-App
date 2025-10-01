@@ -4,7 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:incite/api_controller/user_controller.dart';
 import 'package:incite/model/blog.dart';
-import 'package:incite/pages/main/dashboard.dart';
+// Dashboard page removed
 import 'package:incite/pages/main/widgets/share.dart';
 import 'package:incite/splash_screen.dart';
 import 'package:incite/urls/url.dart';
@@ -78,8 +78,7 @@ class _LiveNewsState extends State<LiveNews> {
               Navigator.pop(context);
             } else if (widget.id != null && prefs!.containsKey('id')) {
               prefs!.remove('id');
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) => const DashboardPage(index: 0)), (route) => false);
+              Navigator.pushNamedAndRemoveUntil(context, "/BlogWrap", (route) => false, arguments: [0, false, null]);
             }
           },
           child: MediaQuery.removePadding(
@@ -104,10 +103,7 @@ class _LiveNewsState extends State<LiveNews> {
                             Backbut(onTap: () {
                               if (widget.id != null && prefs!.containsKey('id')) {
                                 prefs!.remove('id');
-                                Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const DashboardPage(index: 0)),
-                                    (route) => false);
+                                Navigator.pushNamedAndRemoveUntil(context, "/BlogWrap", (route) => false, arguments: [0, false, null]);
                               } else {
                                 Navigator.pop(context);
                               }

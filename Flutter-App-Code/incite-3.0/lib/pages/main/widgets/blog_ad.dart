@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:incite/api_controller/app_provider.dart';
 import 'package:incite/api_controller/user_controller.dart';
-import 'package:incite/pages/auth/signup.dart';
+// Signup removed for MVP
+import 'package:incite/widgets/app_icons.dart';
 import 'package:incite/pages/main/web_view.dart';
 import 'package:incite/utils/color_util.dart';
 import 'package:incite/utils/image_util.dart';
@@ -112,7 +113,7 @@ class _BlogAdState extends State<BlogAd> {
                           decoration:
                               BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          child: const RectangleAppIcon(
+                          child: RectangleAppIcon(
                             width: 70,
                             height: 25,
                           ),

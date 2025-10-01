@@ -32,28 +32,12 @@ Future<Users?> signin(Users user, BuildContext context) async {
   try {
     final username = user.email;
 
-    final checkUrl = Uri.parse('${Urls.baseUrl}check-username');
-    final checkResponse = await http.post(
-      checkUrl,
-      body: jsonEncode({"username": username}),
-      headers: {
-        HttpHeaders.contentTypeHeader: 'application/json',
-        "language-code": languageCode.value.language ?? "en",
-      },
-    );
-    var checkRes = json.decode(checkResponse.body);
-
-    if (checkRes['success'] == true && checkRes['data']['exists'] == false) {
-      showCustomToast(context, 'Username not found. Please sign up first.');
-      Navigator.pushNamed(context, '/SignUpPage');
-      return null;
-    }
-
+    // Admin login - no username check needed
     final msg = jsonEncode({
       "username": username,
       "password": user.password,
     });
-    final url = Uri.parse('${Urls.baseUrl}login');
+    final url = Uri.parse('${Urls.baseUrl}admin/login');
     final response = await http.post(
       url,
       body: msg,
@@ -65,12 +49,21 @@ Future<Users?> signin(Users user, BuildContext context) async {
     var res = json.decode(response.body);
 
     if (res['success'] == true) {
-      res['data']['login_from'] = 'email';
-      setCurrentUser(res);
-      currentUser.value = Users.fromJSON(res['data']);
+      // Save admin token
+      if (res['data']['token'] != null) {
+        prefs?.setString('admin_token', res['data']['token']);
+      }
+
+      // Handle admin data structure
+      var adminData = res['data']['admin'] ?? res['data'];
+      adminData['login_from'] = 'email';
+
+      var userData = {'success': true, 'data': adminData};
+      setCurrentUser(userData);
+      currentUser.value = Users.fromJSON(adminData);
       currentUser.value.isPageHome = true;
 
-      currentUser.value.id = res['data']['id'].toString();
+      currentUser.value.id = adminData['username']?.toString() ?? adminData['id']?.toString() ?? '';
       if (currentUser.value.langCode != null) {
         for (var element in allLanguages) {
           if (element.language == currentUser.value.langCode) {
@@ -78,10 +71,10 @@ Future<Users?> signin(Users user, BuildContext context) async {
           }
         }
       }
-      showCustomToast(context, res['message']);
+      showCustomToast(context, res['message'] ?? 'Admin login successful');
       return currentUser.value;
     } else {
-      showCustomToast(context, res['message']);
+      showCustomToast(context, res['message'] ?? 'Login failed');
       return null;
     }
   } on SocketException {

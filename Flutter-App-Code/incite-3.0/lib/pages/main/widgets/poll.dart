@@ -8,7 +8,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:incite/api_controller/app_provider.dart';
 import 'package:incite/api_controller/blog_controller.dart';
 import 'package:incite/api_controller/news_repo.dart';
-import 'package:incite/pages/auth/signup.dart';
+// Signup removed for MVP
+import 'package:incite/widgets/app_icons.dart';
 import 'package:incite/pages/main/widgets/share.dart';
 import 'package:incite/utils/app_theme.dart';
 import 'package:incite/utils/image_util.dart';

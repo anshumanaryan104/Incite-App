@@ -224,11 +224,15 @@ class UserProvider extends ControllerMVC {
         setState(() {});
         if (value != null) {
           provider.addUserSession(isSignin: true);
-          showCustomToast(context, 'You are logged in successfully');
-          provider.getCategory().whenComplete(() {
-            onChanged(false);
-            Navigator.pushNamedAndRemoveUntil(context, '/MainPage', (route) => false, arguments: 1);
-          });
+          showCustomToast(context, 'Admin logged in successfully');
+
+          // Navigate to Admin Dashboard instead of MainPage
+          onChanged(false);
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/AdminDashboard',
+            (route) => false,
+          );
         } else {
           onChanged(false);
         }

@@ -8,8 +8,9 @@ import 'package:incite/api_controller/app_provider.dart';
 import 'package:incite/api_controller/user_controller.dart';
 import 'package:incite/main.dart';
 import 'package:incite/pages/auth/login.dart';
-import 'package:incite/pages/auth/signup.dart';
-import 'package:incite/pages/main/dashboard.dart';
+// Signup removed for MVP
+import 'package:incite/widgets/app_icons.dart';
+// Dashboard page removed
 import 'package:incite/pages/main/widgets/share.dart';
 import 'package:incite/pages/main/widgets/text.dart';
 import 'package:incite/splash_screen.dart';
@@ -108,10 +109,7 @@ class _QuotePageState extends State<QuotePage> {
                   MaterialPageRoute(builder: (context) => const LoginPage()),
                 );
               } else {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const DashboardPage()),
-                );
+                Navigator.pushNamedAndRemoveUntil(context, "/BlogWrap", (route) => false, arguments: [0, false, null]);
               }
             }
           : (didPop, result) {},

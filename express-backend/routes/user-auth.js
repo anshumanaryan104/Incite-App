@@ -36,7 +36,7 @@ router.post('/check-username', async (req, res) => {
     }
 });
 
-// Login with username and password
+// Login with username and password (Admin only)
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -63,14 +63,20 @@ router.post('/login', async (req, res) => {
             return apiResponse(res, false, null, 'Invalid username or password', 401);
         }
 
-        // Return user data (no JWT for regular users)
+        // Check if user is admin
+        if (user.role !== 'admin' && user.role !== 'super_admin') {
+            return apiResponse(res, false, null, 'Only admins can login. Please use the Skip button.', 403);
+        }
+
+        // Return user data for admin
         apiResponse(res, true, {
             id: user.id,
             username: user.username,
             email: user.email || null,
             name: user.name || username,
+            role: user.role,
             created_at: user.created_at
-        }, 'Login successful');
+        }, 'Admin login successful');
     } catch (error) {
         console.error('Error logging in:', error);
         apiResponse(res, false, null, error.message, 500);

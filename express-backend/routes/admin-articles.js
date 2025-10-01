@@ -14,15 +14,15 @@ router.post('/', requireAdmin, async (req, res) => {
             title,
             description,
             content,
-            category_id,
+            // category_id removed
             featured_image,
             images,
             type,
             is_featured
         } = req.body;
 
-        if (!title || !content || !category_id) {
-            return apiResponse(res, false, null, 'Title, content, and category_id required', 400);
+        if (!title || !content) {
+            return apiResponse(res, false, null, 'Title and content required', 400);
         }
 
         const slug = title.toLowerCase()
@@ -37,7 +37,7 @@ router.post('/', requireAdmin, async (req, res) => {
                 slug,
                 description,
                 content,
-                category_id,
+                // category_id removed
                 featured_image,
                 images: images || [featured_image],
                 type: type || 'article',
@@ -76,7 +76,7 @@ router.put('/:id', requireAdmin, async (req, res) => {
             title,
             description,
             content,
-            category_id,
+            // category_id removed
             featured_image,
             images,
             type,
@@ -102,7 +102,7 @@ router.put('/:id', requireAdmin, async (req, res) => {
         if (title) updateData.title = title;
         if (description) updateData.description = description;
         if (content) updateData.content = content;
-        if (category_id) updateData.category_id = category_id;
+        // category_id removed
         if (featured_image) updateData.featured_image = featured_image;
         if (images) updateData.images = images;
         if (type) updateData.type = type;
@@ -193,15 +193,7 @@ router.get('/', requireAdmin, async (req, res) => {
 
         const { data: articles, error, count } = await supabase
             .from('articles')
-            .select(`
-                *,
-                categories (
-                    id,
-                    name,
-                    color,
-                    slug
-                )
-            `, { count: 'exact' })
+            .select('*', { count: 'exact' })
             .eq('status', status)
             .order('created_at', { ascending: false })
             .range(from, to);

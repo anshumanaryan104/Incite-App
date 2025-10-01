@@ -5,7 +5,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:incite/api_controller/app_provider.dart';
 import 'package:incite/api_controller/user_controller.dart';
-import 'package:incite/pages/auth/signup.dart';
+// Signup removed for MVP
+import 'package:incite/widgets/app_icons.dart';
 import 'package:incite/pages/main/widgets/share.dart';
 import 'package:incite/pages/main/widgets/text.dart';
 import 'package:incite/urls/url.dart';
@@ -263,7 +264,7 @@ class _PlayAnyVideoPlayerState extends State<PlayAnyVideoPlayer> with WidgetsBin
                                       ? widget.model!.images![0]
                                       : '${widget.model!.backgroundImage}',
                               errorWidget: (context, url, str) {
-                                return const AppIcon();
+                                return AppIcon();
                               },
                             )),
                       Positioned.fill(
@@ -344,7 +345,7 @@ class _PlayAnyVideoPlayerState extends State<PlayAnyVideoPlayer> with WidgetsBin
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                const RectangleAppIcon(
+                                RectangleAppIcon(
                                   width: 45,
                                 ),
                                 const SizedBox(width: 5),

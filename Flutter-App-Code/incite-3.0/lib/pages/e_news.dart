@@ -3,7 +3,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:incite/api_controller/news_repo.dart';
-import 'package:incite/pages/main/dashboard.dart';
+// Dashboard page removed
 import 'package:incite/pages/main/widgets/share.dart';
 import 'package:incite/splash_screen.dart';
 import 'package:incite/urls/url.dart';
@@ -70,7 +70,7 @@ class _EnewsPageState extends State<EnewsPage> {
             Navigator.pop(context);
           }else if(widget.id != null && prefs!.containsKey('id')){
               prefs!.remove('id');
-               Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=> const DashboardPage(index: 0)),(route)=> false);
+              Navigator.pushNamedAndRemoveUntil(context, "/BlogWrap", (route) => false, arguments: [0, false, null]);
           }
         },
         child:Scaffold(
@@ -83,7 +83,7 @@ class _EnewsPageState extends State<EnewsPage> {
                     Navigator.pop(context);
                   } else if(widget.id != null && prefs!.containsKey('id')){
                       prefs!.remove('id');
-                      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=> const DashboardPage(index: 0)),(route)=> false);
+                      Navigator.pushNamedAndRemoveUntil(context, "/BlogWrap", (route) => false, arguments: [0, false, null]);
                   }
                 },
               ),

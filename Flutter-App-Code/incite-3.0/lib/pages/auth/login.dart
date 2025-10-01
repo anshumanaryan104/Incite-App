@@ -7,7 +7,7 @@ import 'package:incite/api_controller/app_provider.dart';
 import 'package:incite/api_controller/repository.dart';
 import 'package:incite/api_controller/user_controller.dart';
 import 'package:incite/model/blog.dart';
-import 'package:incite/pages/auth/signup.dart';
+// Signup removed for MVP - admin login only
 import 'package:incite/utils/app_theme.dart';
 import 'package:incite/utils/color_util.dart';
 import 'package:incite/utils/theme_util.dart';
@@ -175,12 +175,19 @@ class _LoginPageState extends State<LoginPage> {
                               children: [
                                 widget.isFromHome ? const Backbut() : const SizedBox(),
                                 InkWell(
-                                  onTap: () {
-                                    Navigator.pushNamedAndRemoveUntil(
-                                      context,
-                                      '/MainPage',
-                                      (route) => false,
-                                    );
+                                  onTap: () async {
+                                    // Load categories and navigate to BlogWrap
+                                    var provider = Provider.of<AppProvider>(context, listen: false);
+                                    await provider.getCategory();
+
+                                    if (context.mounted) {
+                                      Navigator.pushNamedAndRemoveUntil(
+                                        context,
+                                        '/BlogWrap',
+                                        (route) => false,
+                                        arguments: [0, false, null],
+                                      );
+                                    }
                                   },
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
@@ -198,7 +205,11 @@ class _LoginPageState extends State<LoginPage> {
                               ],
                             ),
                             const Spacer(),
-                            const RectangleAppIcon(width: 130),
+                            Image.asset(
+                              'assets/images/logo.png',
+                              width: 130,
+                              height: 130,
+                            ),
                             const SizedBox(height: 20),
                             Text(
                               allMessages.value.signIn ?? 'Sign in',
@@ -295,7 +306,7 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ],
                             ),
-                            const Spacer(flex: 4),
+                            const Spacer(flex: 2),
                             ElevateButton(
                               style: const TextStyle(
                                 fontFamily: 'Poppins',
@@ -316,67 +327,7 @@ class _LoginPageState extends State<LoginPage> {
                               },
                               text: allMessages.value.signIn ?? 'Sign in',
                             ),
-                            const SizedBox(height: 20),
-                            Platform.isIOS
-                                ? ElevateButton(
-                                    splash: ColorUtil.textgrey.customOpacity(0.4),
-                                    leadIcon: SvgPicture.asset(
-                                      'assets/svg/apple.svg',
-                                      width: 20,
-                                      height: 20,
-                                      colorFilter: ColorFilter.mode(
-                                        dark(context) ? Colors.white : Colors.black,
-                                        BlendMode.srcIn,
-                                      ),
-                                    ),
-                                    style: const TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    color: dark(context) ? Theme.of(context).cardColor : ColorUtil.whiteGrey,
-                                    onTap: () {
-                                      userProvider.appleLogin(
-                                        context,
-                                        onChanged: (value) {
-                                          isLoad = value;
-                                          setState(() {});
-                                        },
-                                      );
-                                    },
-                                    text: allMessages.value.appleSignIn ?? 'Sign in with Apple',
-                                  )
-                                : const SizedBox(),
-                            if (Platform.isIOS) const SizedBox(height: 20),
-                            // if(allSettings.value.enableGoogleSignIn == "1")
-                            ElevateButton(
-                              splash: ColorUtil.textgrey.customOpacity(0.4),
-                              leadIcon: Image.asset('assets/images/google.png', width: 20, height: 20),
-                              style: const TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              color: dark(context) ? Theme.of(context).cardColor : ColorUtil.whiteGrey,
-                              onTap: () {
-                                userProvider.googleLogin(
-                                  context,
-                                  onChanged: (value) {
-                                    isLoad = value;
-                                    setState(() {});
-                                  },
-                                );
-                              },
-                              text: allMessages.value.googleSignIn ?? 'Sign in with Google',
-                            ),
-                            const SizedBox(height: 40),
-                            BottomText2(
-                              widget: widget,
-                              onTap: () {
-                                Navigator.pushReplacementNamed(context, '/LoginPage');
-                                Navigator.pushNamed(context, '/SignUpPage');
-                              },
-                            ),
+                            // Admin login only - no social sign-in or signup
                             const SizedBox(height: 16),
                           ],
                         ),
@@ -390,40 +341,4 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-class BottomText2 extends StatelessWidget {
-  const BottomText2({super.key, this.onTap, required this.widget});
-
-  final LoginPage widget;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return RichText(
-      text: TextSpan(
-        text: allMessages.value.newUser ?? 'New user? ',
-        style: TextStyle(
-          fontFamily: 'Poppins',
-          fontSize: 14,
-          color: dark(context) ? ColorUtil.white : ColorUtil.textblack,
-        ),
-        children: [
-          WidgetSpan(
-            child: Container(
-              margin: const EdgeInsets.only(left: 8),
-              child: InkWell(
-                onTap: () {
-                  Navigator.pushNamed(context, '/SignUpPage');
-                },
-                child: GradientText(
-                  allMessages.value.signUp ?? 'Sign Up',
-                  gradient: dark(context) ? darkPrimaryGradient(context) : primaryGradient(context),
-                  style: const TextStyle(fontFamily: 'Poppins', fontSize: 14),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// BottomText2 widget removed - no signup for MVP

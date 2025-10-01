@@ -8,7 +8,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:html/parser.dart';
 import 'package:incite/api_controller/news_repo.dart';
-import 'package:incite/pages/auth/signup.dart';
+// Signup removed for MVP
+import 'package:incite/widgets/app_icons.dart';
+import 'package:incite/widgets/common_widgets.dart';
 import 'package:incite/pages/main/web_view.dart';
 import 'package:incite/pages/main/widgets/caurosal.dart';
 import 'package:incite/pages/main/widgets/fullscreen.dart';
@@ -38,7 +40,7 @@ import '../../utils/tts.dart';
 import '../../widgets/banner_ads.dart';
 import '../../widgets/custom_toast.dart';
 import '../../widgets/tap.dart';
-import 'home.dart';
+// Home page removed
 import 'package:just_audio/just_audio.dart' as just;
 import 'widgets/text.dart';
 
@@ -1005,7 +1007,7 @@ class _BlogPageState extends State<BlogPage> with WidgetsBindingObserver {
                         height: 40,
                       )),
                 Spacer(),
-                const RectangleAppIcon(
+                RectangleAppIcon(
                   width: 80,
                   height: 25,
                 )

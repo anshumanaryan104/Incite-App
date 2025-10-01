@@ -9,7 +9,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart' as google;
 import 'package:incite/api_controller/blog_controller.dart';
 import 'package:incite/api_controller/user_controller.dart';
 import 'package:incite/model/home.dart';
-import 'package:incite/pages/auth/signup.dart';
+// Signup removed for MVP
+import 'package:incite/widgets/app_icons.dart';
 import 'package:incite/pages/main/widgets/quotes.dart';
 import 'package:easy_audience_network/easy_audience_network.dart' as facebook;
 import 'package:incite/utils/app_theme.dart';
@@ -793,7 +794,7 @@ class _InciteHeaderState extends State<InciteHeader> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Backbut(key: const ValueKey('34543'), onTap: widget.onTap),
-          if (widget.showBackOnly == false) const RectangleAppIcon(width: 70, height: 50),
+          if (widget.showBackOnly == false) RectangleAppIcon(width: 70, height: 50),
           if (widget.showBackOnly == false)
             ToggleButton(
               isON: appThemeModel.value.isAutoPlay.value,

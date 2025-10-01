@@ -183,67 +183,7 @@ app.get('/api/blog-detail/:id', async (req, res) => {
     }
 });
 
-// Blog Category List API
-app.get('/api/blog-category-list', (req, res) => {
-    console.log('📍 /api/blog-category-list called with headers:', req.headers);
-
-    // Return categories with blog data structure expected by Flutter app
-    res.json({
-        success: true,
-        data: [
-            {
-                id: 1,
-                name: "All News",
-                image: null,
-                color: "#FF6B6B",
-                parent_id: null,
-                is_featured: 1,
-                is_feed: true,
-                data: {
-                    blogs: mockBlogs,
-                    current_page: 1,
-                    first_page_url: "http://10.0.2.2:3000/api/blog-category-list?page=1",
-                    from: 1,
-                    last_page: 1,
-                    last_page_url: "http://10.0.2.2:3000/api/blog-category-list?page=1",
-                    next_page_url: null,
-                    path: "http://10.0.2.2:3000/api/blog-category-list",
-                    per_page: 10,
-                    prev_page_url: null,
-                    to: mockBlogs.length,
-                    total: mockBlogs.length
-                },
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-            },
-            {
-                id: 2,
-                name: "Technology",
-                image: null,
-                color: "#4ECDC4",
-                parent_id: null,
-                is_featured: 0,
-                is_feed: true,
-                data: {
-                    blogs: mockBlogs.filter(b => b.category === 'Technology'),
-                    current_page: 1,
-                    first_page_url: "http://10.0.2.2:3000/api/blog-category-list?page=1",
-                    from: 1,
-                    last_page: 1,
-                    last_page_url: "http://10.0.2.2:3000/api/blog-category-list?page=1",
-                    next_page_url: null,
-                    path: "http://10.0.2.2:3000/api/blog-category-list",
-                    per_page: 10,
-                    prev_page_url: null,
-                    to: 1,
-                    total: 1
-                },
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-            }
-        ]
-    });
-});
+// Blog Category List API - Removed (categories no longer used)
 
 // Language List API
 app.get('/api/language-list', (req, res) => {
@@ -380,10 +320,9 @@ if (USE_SUPABASE) {
     // Add Admin routes
     const adminAuthRoutes = require('./routes/admin-auth');
     const adminArticleRoutes = require('./routes/admin-articles');
-    const adminCategoryRoutes = require('./routes/admin-categories');
+    // Category routes removed
     app.use('/api/admin', adminAuthRoutes);
     app.use('/api/admin/articles', adminArticleRoutes);
-    app.use('/api/admin/categories', adminCategoryRoutes);
 
     // Add 404 handler after routes
     app.use((req, res) => {

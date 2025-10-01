@@ -37,8 +37,7 @@ class _ArticleFormPageState extends State<ArticleFormPage> {
   final TextEditingController _contentController = TextEditingController();
   final TextEditingController _imageController = TextEditingController();
 
-  List<dynamic> categories = [];
-  int? selectedCategoryId;
+  // Categories removed
   String? adminToken;
 
   @override
@@ -51,11 +50,10 @@ class _ArticleFormPageState extends State<ArticleFormPage> {
       _descriptionController.text = widget.article!['description'] ?? '';
       _contentController.text = widget.article!['content'] ?? '';
       _imageController.text = widget.article!['featured_image'] ?? '';
-      selectedCategoryId = widget.article!['category_id'];
       isFeatured = widget.article!['is_featured'] ?? false;
     }
 
-    _fetchCategories();
+    // Category fetching removed
   }
 
   @override
@@ -67,35 +65,8 @@ class _ArticleFormPageState extends State<ArticleFormPage> {
     super.dispose();
   }
 
-  Future<void> _fetchCategories() async {
-    try {
-      final String url = '${Urls.baseUrl}blog-category-list';
-      final response = await http.get(Uri.parse(url));
-
-      final data = json.decode(response.body);
-
-      if (data['success'] == true) {
-        setState(() {
-          categories = data['data'] ?? [];
-          if (!widget.isEdit && categories.isNotEmpty) {
-            selectedCategoryId = categories[0]['id'];
-          }
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        showCustomToast(context, 'Failed to load categories');
-      }
-    }
-  }
-
   Future<void> _saveArticle() async {
     if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (selectedCategoryId == null) {
-      showCustomToast(context, 'Please select a category');
       return;
     }
 
@@ -108,7 +79,7 @@ class _ArticleFormPageState extends State<ArticleFormPage> {
         'title': _titleController.text.trim(),
         'description': _descriptionController.text.trim(),
         'content': _contentController.text.trim(),
-        'category_id': selectedCategoryId,
+        // category_id removed
         'featured_image': _imageController.text.trim(),
         'is_featured': isFeatured,
       };
@@ -264,40 +235,7 @@ class _ArticleFormPageState extends State<ArticleFormPage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<int>(
-                    isExpanded: true,
-                    hint: const Text('Select Category'),
-                    value: selectedCategoryId,
-                    items: categories.isEmpty
-                        ? []
-                        : categories.map<DropdownMenuItem<int>>((category) {
-                            return DropdownMenuItem<int>(
-                              value: category['id'],
-                              child: Text(
-                                category['name'] ?? 'Unnamed',
-                                style: const TextStyle(
-                                  fontFamily: 'Roboto',
-                                  fontSize: 14,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedCategoryId = value;
-                      });
-                    },
-                  ),
-                ),
-              ),
+              // Category dropdown removed
               const SizedBox(height: 16),
               CheckboxListTile(
                 title: const Text(

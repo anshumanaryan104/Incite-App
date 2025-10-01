@@ -4,12 +4,13 @@ import 'package:incite/model/home.dart';
 import 'package:incite/utils/app_theme.dart';
 import 'package:incite/utils/color_util.dart';
 import 'package:incite/widgets/anim_util.dart';
+import 'package:incite/widgets/common_widgets.dart';
 import 'package:incite/widgets/drawer.dart';
 import 'package:incite/widgets/tap.dart';
 
 import '../../../api_controller/user_controller.dart';
 import '../../../utils/theme_util.dart';
-import '../../main/home.dart';
+// Home page removed
 
 class ListSettingWrap extends StatelessWidget {
   const ListSettingWrap({super.key, this.model, this.pos = 1, this.isOn = false, this.onTap});
@@ -232,7 +233,6 @@ class RowDot extends StatelessWidget {
           duration: 100 * pos,
           child: Row(
             children: [
-              CirlceDot(radius: 8, color: textColor(context)),
               const SizedBox(width: 8),
               Text(title ?? '',
                   style: const TextStyle(
