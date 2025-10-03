@@ -565,7 +565,7 @@ class _BlogPageState extends State<BlogPage> with WidgetsBindingObserver {
                                                                                 fit: BoxFit.cover,
                                                                               )
                                                                             : CachedNetworkImage(
-                                                                                imageUrl: blog.images != null
+                                                                                imageUrl: blog.images != null && blog.images!.isNotEmpty
                                                                                     ? blog.images![0]
                                                                                     : '',
                                                                                 fit: BoxFit.cover,

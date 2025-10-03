@@ -359,6 +359,8 @@ class _BlogWrapPageState extends State<BlogWrapPage> with AutomaticKeepAliveClie
                                       widget.onChanged(0);
                                     },
                               keyword: "${blogListHolder.getList().blogs[index].categoryName} Stories",
+                              // Button hidden when already in allnews mode (since that's the default)
+                              isButton: blogListHolder.getBlogType() != BlogType.allnews,
                               onTap: widget.isBack
                                   ? () {
                                       Navigator.pop(context);
@@ -734,24 +736,6 @@ class NoPostFound extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          if (blogListHolder.blogType == BlogType.feed)
-            ElevateButton(
-              width: 120,
-              style: const TextStyle(
-                fontSize: 16,
-                fontFamily: 'Roboto',
-                color: Colors.white,
-                fontWeight: FontWeight.w500,
-              ),
-              onTap: currentUser.value.id == null
-                  ? () {
-                      Navigator.pushNamed(context, '/LoginPage');
-                    }
-                  : () {
-                      Navigator.pushNamed(context, '/SaveInterests', arguments: false);
-                    },
-              text: allMessages.value.myFeed ?? 'My feed',
-            ),
         ],
       ),
     );

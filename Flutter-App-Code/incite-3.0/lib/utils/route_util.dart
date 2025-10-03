@@ -10,7 +10,7 @@ import 'package:incite/pages/auth/otp.dart';
 import 'package:incite/pages/auth/reset_password.dart';
 // Signup page removed for MVP
 import 'package:incite/pages/e_news.dart';
-import 'package:incite/pages/interests/save_insterests.dart';
+// Save interests page removed
 import 'package:incite/pages/main/blog_wrap.dart';
 import 'package:incite/pages/main/web_view.dart';
 import 'package:incite/pages/main/widgets/quotes.dart';
@@ -44,8 +44,7 @@ class RouteGenerator {
 
       // MainPage removed - using BlogWrap directly
 
-      case '/SaveInterests':
-        return PagingTransform(widget: SaveInterest(isDrawer: args));
+      // SaveInterests route removed
 
       case '/ReadBlog':
         return PagingTransform(

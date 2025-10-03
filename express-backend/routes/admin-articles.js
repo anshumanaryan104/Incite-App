@@ -14,7 +14,6 @@ router.post('/', requireAdmin, async (req, res) => {
             title,
             description,
             content,
-            // category_id removed
             featured_image,
             images,
             type,
@@ -30,6 +29,28 @@ router.post('/', requireAdmin, async (req, res) => {
             .replace(/^-+|-+$/g, '')
             + '-' + Date.now();
 
+        // Get or create "All News" category
+        let { data: category } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('name', 'All News')
+            .single();
+
+        if (!category) {
+            const { data: newCategory } = await supabase
+                .from('categories')
+                .insert([{
+                    name: 'All News',
+                    color: '#FF6B6B',
+                    is_active: true,
+                    is_feed: true,
+                    sort_order: 1
+                }])
+                .select()
+                .single();
+            category = newCategory;
+        }
+
         const { data: article, error } = await supabase
             .from('articles')
             .insert([{
@@ -37,7 +58,7 @@ router.post('/', requireAdmin, async (req, res) => {
                 slug,
                 description,
                 content,
-                // category_id removed
+                category_id: category?.id || null,
                 featured_image,
                 images: images || [featured_image],
                 type: type || 'article',
@@ -103,8 +124,15 @@ router.put('/:id', requireAdmin, async (req, res) => {
         if (description) updateData.description = description;
         if (content) updateData.content = content;
         // category_id removed
-        if (featured_image) updateData.featured_image = featured_image;
-        if (images) updateData.images = images;
+        if (featured_image) {
+            updateData.featured_image = featured_image;
+            // Always sync images array with featured_image if images not provided
+            updateData.images = [featured_image];
+        }
+        // If images explicitly provided, use that instead
+        if (images && Array.isArray(images) && images.length > 0) {
+            updateData.images = images;
+        }
         if (type) updateData.type = type;
         if (is_featured !== undefined) updateData.is_featured = is_featured;
         if (status) updateData.status = status;
@@ -151,13 +179,10 @@ router.delete('/:id', requireAdmin, requireRole(['admin', 'super_admin']), async
             return apiResponse(res, false, null, 'Article not found', 404);
         }
 
+        // HARD DELETE - Permanently remove from database
         const { data: article, error } = await supabase
             .from('articles')
-            .update({
-                status: 'deleted',
-                deleted_by: req.admin.username,
-                deleted_at: new Date().toISOString()
-            })
+            .delete()
             .eq('id', id)
             .select()
             .single();

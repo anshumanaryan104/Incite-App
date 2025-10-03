@@ -187,10 +187,7 @@ class _DrawerPageState extends State<DrawerPage> {
                                               Navigator.pushNamed(context, '/UserProfile', arguments: true);
                                               break;
                                             case 2:
-                                              Navigator.pushNamed(context, '/SaveInterests', arguments: true)
-                                                  .then((value) {
-                                                provider.selectedInterests(provider.selectedFeed);
-                                              });
+                                              // SaveInterests removed
                                               break;
                                             case 1:
                                               blogListHolder2.clearList();

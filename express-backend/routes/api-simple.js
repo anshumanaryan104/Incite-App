@@ -25,77 +25,62 @@ router.get(['/view-all-post', '/blog-list'], async (req, res) => {
         const from = (page - 1) * count;
         const to = from + count - 1;
 
-        // Get all active categories
-        const { data: categories, error: catError } = await supabase
-            .from('categories')
-            .select('*')
-            .eq('is_active', true)
-            .eq('is_feed', true)
-            .order('sort_order');
+        // Get all published articles (no category filter)
+        const { data: articles, error: artError, count: totalCount } = await supabase
+            .from('articles')
+            .select('*', { count: 'exact' })
+            .eq('status', 'published')
+            .order('published_at', { ascending: false })
+            .range(from, to);
 
-        if (catError) throw catError;
+        if (artError) throw artError;
 
-        // Format categories with their articles
-        const formattedCategories = await Promise.all(
-            categories.map(async (category) => {
-                // Get articles for this category
-                const { data: articles, error: artError, count: totalCount } = await supabase
-                    .from('articles')
-                    .select('*', { count: 'exact' })
-                    .eq('category_id', category.id)
-                    .eq('status', 'published')
-                    .order('published_at', { ascending: false })
-                    .range(from, to);
+        // Format as single category for app compatibility
+        const formattedResponse = [{
+            id: 1,
+            name: 'All News',
+            image: null,
+            color: '#FF6B6B',
+            parent_id: null,
+            is_featured: 1,
+            is_feed: true,
+            data: {
+                blogs: (articles || []).map(article => ({
+                    id: article.id,
+                    title: article.title,
+                    description: article.description,
+                    content: article.content,
+                    category: 'News',
+                    category_name: 'News',
+                    category_color: '#FF6B6B',
+                    image: article.featured_image,
+                    images: article.images || [article.featured_image],
+                    created_at: article.created_at,
+                    schedule_date: article.published_at,
+                    views: article.views || 0,
+                    is_featured: article.is_featured ? 1 : 0,
+                    type: article.type || 'blog',
+                    source_name: article.source_name || 'News App'
+                })),
+                current_page: page,
+                first_page_url: `/api/view-all-post?page=1`,
+                from: from + 1,
+                last_page: Math.ceil((totalCount || 0) / count),
+                last_page_url: `/api/view-all-post?page=${Math.ceil((totalCount || 0) / count)}`,
+                next_page_url: page < Math.ceil((totalCount || 0) / count)
+                    ? `/api/view-all-post?page=${page + 1}`
+                    : null,
+                path: '/api/view-all-post',
+                per_page: count,
+                prev_page_url: page > 1 ? `/api/view-all-post?page=${page - 1}` : null,
+                to: Math.min(to + 1, totalCount || 0),
+                total: totalCount || 0
+            },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        }];
 
-                if (artError) console.error('Article fetch error:', artError);
-
-                return {
-                    id: category.id,
-                    name: category.name,
-                    image: category.image_url,
-                    color: category.color,
-                    parent_id: category.parent_id,
-                    is_featured: category.is_featured ? 1 : 0,
-                    is_feed: category.is_feed,
-                    data: {
-                        blogs: (articles || []).map(article => ({
-                            id: article.id,
-                            title: article.title,
-                            description: article.description,
-                            content: article.content,
-                            category: category.name,
-                            category_name: category.name,
-                            category_color: category.color,
-                            image: article.featured_image,
-                            images: article.images || [article.featured_image],
-                            created_at: article.created_at,
-                            schedule_date: article.published_at,
-                            views: article.views || 0,
-                            is_featured: article.is_featured ? 1 : 0,
-                            type: article.type || 'blog',
-                            source_name: article.source_name || 'News App'
-                        })),
-                        current_page: page,
-                        first_page_url: `/api/view-all-post?page=1`,
-                        from: from + 1,
-                        last_page: Math.ceil((totalCount || 0) / count),
-                        last_page_url: `/api/view-all-post?page=${Math.ceil((totalCount || 0) / count)}`,
-                        next_page_url: page < Math.ceil((totalCount || 0) / count)
-                            ? `/api/view-all-post?page=${page + 1}`
-                            : null,
-                        path: '/api/view-all-post',
-                        per_page: count,
-                        prev_page_url: page > 1 ? `/api/view-all-post?page=${page - 1}` : null,
-                        to: Math.min(to + 1, totalCount || 0),
-                        total: totalCount || 0
-                    },
-                    created_at: category.created_at,
-                    updated_at: category.updated_at
-                };
-            })
-        );
-
-        apiResponse(res, true, formattedCategories);
+        apiResponse(res, true, formattedResponse);
     } catch (error) {
         console.error('Error in /view-all-post:', error);
         apiResponse(res, false, null, error.message, 500);
@@ -1607,9 +1592,16 @@ router.get('/localisation-list', (req, res) => {
 // Mock login endpoint (returns dummy data)
 // Login and signup moved to user-auth.js routes
 
-// POST /api/add-feed
-// Store user's selected interests/categories for personalized feed
+// Feed preferences removed - not using interests/categories
+
+// POST /api/add-feed - REMOVED
+// Feed preferences functionality removed
 router.post('/add-feed', async (req, res) => {
+    apiResponse(res, true, { message: 'Feed preferences not required' }, 'Success');
+    return;
+
+    /* REMOVED CODE
+router.post('/add-feed-OLD', async (req, res) => {
     try {
         const {
             user_id,
@@ -1794,11 +1786,23 @@ router.post('/add-feed', async (req, res) => {
         console.error('Error in /add-feed API:', error);
         apiResponse(res, false, null, 'Failed to save feed preferences: ' + error.message, 500);
     }
+    */
 });
 
-// GET /api/get-feed
-// Retrieve user's selected interests/categories
+// GET /api/get-feed - REMOVED
+// Feed preferences functionality removed
 router.get('/get-feed', async (req, res) => {
+    apiResponse(res, true, {
+        category_ids: [],
+        category_names: [],
+        preferences: {},
+        is_configured: false,
+        message: 'Feed preferences not required'
+    });
+    return;
+
+    /* REMOVED CODE
+router.get('/get-feed-OLD', async (req, res) => {
     try {
         const user_id = req.query.user_id || req.headers['x-user-id'];
         const device_id = req.query.device_id || req.headers['x-device-id'];
@@ -1874,11 +1878,17 @@ router.get('/get-feed', async (req, res) => {
         console.error('Error in /get-feed API:', error);
         apiResponse(res, false, null, 'Failed to retrieve feed preferences: ' + error.message, 500);
     }
+    */
 });
 
-// DELETE /api/remove-feed
-// Remove/reset user's feed preferences
+// DELETE /api/remove-feed - REMOVED
+// Feed preferences functionality removed
 router.delete('/remove-feed', async (req, res) => {
+    apiResponse(res, true, null, 'Feed preferences removed (not required)');
+    return;
+
+    /* REMOVED CODE
+router.delete('/remove-feed-OLD', async (req, res) => {
     try {
         const { user_id, device_id } = req.body;
 
@@ -1928,6 +1938,7 @@ router.delete('/remove-feed', async (req, res) => {
         console.error('Error in /remove-feed API:', error);
         apiResponse(res, false, null, 'Failed to remove feed preferences: ' + error.message, 500);
     }
+    */
 });
 
 // POST /api/update-token

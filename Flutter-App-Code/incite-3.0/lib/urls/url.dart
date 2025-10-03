@@ -1,5 +1,5 @@
 class Urls {
-  // For Android Emulator: 10.0.2.2 = localhost
-  static String baseUrl = "http://10.0.2.2:3000/api/";
-  static String baseServer = "http://10.0.2.2:3000/";
+  // For WSL backend: Use Windows host IP (WSL gateway)
+  static String baseUrl = "http://172.21.144.1:3000/api/";
+  static String baseServer = "http://172.21.144.1:3000/";
 }

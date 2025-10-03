@@ -500,13 +500,9 @@ class AppProvider extends ChangeNotifier {
 
         if (deepLink == false && !prefs!.containsKey('setNotification')) {
           if (nextpageurl == null) {
-            if (currentUser.value.id != null) {
-              blogListHolder.setList(feed!);
-              blogListHolder.setBlogType(BlogType.feed);
-            } else {
-              blogListHolder.setList(allNews!);
-              blogListHolder.setBlogType(BlogType.allnews);
-            }
+            // Always show All News regardless of login status
+            blogListHolder.setList(allNews!);
+            blogListHolder.setBlogType(BlogType.allnews);
           } else {
             if (blogListHolder.getBlogType() == BlogType.feed) {
               var nextfeed = DataModel(

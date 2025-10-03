@@ -320,9 +320,10 @@ if (USE_SUPABASE) {
     // Add Admin routes
     const adminAuthRoutes = require('./routes/admin-auth');
     const adminArticleRoutes = require('./routes/admin-articles');
-    // Category routes removed
+    const adminCategoryRoutes = require('./routes/admin-categories');
     app.use('/api/admin', adminAuthRoutes);
     app.use('/api/admin/articles', adminArticleRoutes);
+    app.use('/api/admin/categories', adminCategoryRoutes);
 
     // Add 404 handler after routes
     app.use((req, res) => {

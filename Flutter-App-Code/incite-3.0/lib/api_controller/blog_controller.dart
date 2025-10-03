@@ -2,7 +2,7 @@ import '../model/blog.dart';
 
 class BlogListHolder {
   DataModel _list = DataModel();
-  BlogType blogType = BlogType.feed;
+  BlogType blogType = BlogType.allnews;  // Changed from feed to allnews - show All News by default
   int _index = 0;
 
   int getIndex() => _index;
