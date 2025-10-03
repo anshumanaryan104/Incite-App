@@ -43,6 +43,7 @@ import '../../widgets/tap.dart';
 // Home page removed
 import 'package:just_audio/just_audio.dart' as just;
 import 'widgets/text.dart';
+import '../../widgets/ask_ai_dialog.dart';
 
 // GlobalKey previewContainer2 = GlobalKey();
 
@@ -803,47 +804,13 @@ class _BlogPageState extends State<BlogPage> with WidgetsBindingObserver {
                                           child: PostFeatureWrap(
                                               isVolume: isVolume,
                                               onAskAI: () {
-                                                // Handle Ask AI functionality
+                                                // Show Ask AI Dialog
                                                 showDialog(
                                                   context: context,
                                                   builder: (BuildContext context) {
-                                                    return AlertDialog(
-                                                      title: const Text('Ask AI'),
-                                                      content: Column(
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                          Text(
-                                                            'AI Assistant for:',
-                                                            style: TextStyle(
-                                                              fontWeight: FontWeight.bold,
-                                                              color: Theme.of(context).primaryColor,
-                                                            ),
-                                                          ),
-                                                          const SizedBox(height: 8),
-                                                          Text(
-                                                            blog.title ?? '',
-                                                            maxLines: 2,
-                                                            overflow: TextOverflow.ellipsis,
-                                                          ),
-                                                          const SizedBox(height: 16),
-                                                          const Text(
-                                                            'AI feature coming soon! You will be able to ask questions about this article.',
-                                                            style: TextStyle(fontSize: 14),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      actions: [
-                                                        TextButton(
-                                                          onPressed: () => Navigator.pop(context),
-                                                          child: Text(
-                                                            'Close',
-                                                            style: TextStyle(
-                                                              color: Theme.of(context).primaryColor,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
+                                                    return AskAIDialog(
+                                                      articleTitle: blog.title ?? '',
+                                                      articleContent: blog.description ?? '',
                                                     );
                                                   },
                                                 );
