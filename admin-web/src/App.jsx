@@ -63,7 +63,7 @@ function App() {
     <div className="app-container">
       <div className="login-container">
         <div className="logo-container">
-          <h1 className="logo">incite</h1>
+          <h1 className="logo">Polymath</h1>
         </div>
 
         <h2 className="sign-in-title">Sign in</h2>

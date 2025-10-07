@@ -78,17 +78,17 @@ class _SplashScreenState extends State<SplashScreen> {
                                 child: Column(
                                   children: [
                                     value.appSplashScreen == null
-                                        ? Image.asset(Img.logo, width: 100, height: 100)
+                                        ? _buildPolymathLogo()
                                         : CachedNetworkImage(
                                             imageUrl:
                                                 "${value.baseImageUrl}/${value.appSplashScreen.toString()}",
                                             width: 100,
                                             height: 100,
                                             placeholder: (context, url) {
-                                              return Image.asset(Img.logo, width: 100, height: 100);
+                                              return _buildPolymathLogo();
                                             },
                                             errorWidget: (context, url, error) {
-                                              return Image.asset(Img.logo, width: 100, height: 100);
+                                              return _buildPolymathLogo();
                                             }),
                                     if (value.appName != null) const SizedBox(height: 12),
                                     if (value.appName != null)
@@ -106,6 +106,30 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             );
           }),
+    );
+  }
+
+  Widget _buildPolymathLogo() {
+    return ShaderMask(
+      shaderCallback: (bounds) => LinearGradient(
+        colors: [
+          Color(0xFFFF6B6B), // Coral
+          Color(0xFFB8A4D4), // Purple
+        ],
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+      ).createShader(bounds),
+      child: Text(
+        'Polymath',
+        style: TextStyle(
+          fontSize: 36,
+          fontFamily: 'Roboto',
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+          letterSpacing: -1.2,
+          decoration: TextDecoration.none,
+        ),
+      ),
     );
   }
 }

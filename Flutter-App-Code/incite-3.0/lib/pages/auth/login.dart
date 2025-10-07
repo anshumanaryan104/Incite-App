@@ -205,10 +205,27 @@ class _LoginPageState extends State<LoginPage> {
                               ],
                             ),
                             const Spacer(),
-                            Image.asset(
-                              'assets/images/logo.png',
-                              width: 130,
-                              height: 130,
+                            // Polymath text logo with gradient
+                            ShaderMask(
+                              shaderCallback: (bounds) => LinearGradient(
+                                colors: [
+                                  Color(0xFFFF6B6B), // Coral
+                                  Color(0xFFB8A4D4), // Purple
+                                ],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ).createShader(bounds),
+                              child: Text(
+                                'Polymath',
+                                style: TextStyle(
+                                  fontSize: 48,
+                                  fontFamily: 'Roboto',
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                  letterSpacing: -1.5,
+                                  decoration: TextDecoration.none,
+                                ),
+                              ),
                             ),
                             const SizedBox(height: 20),
                             Text(

@@ -48,19 +48,20 @@ class _PostFeatureWrapState extends State<PostFeatureWrap> {
               pad: 4,
               radius: 6,
               onTap: widget.onAskAI!,
-              child: SvgPicture.asset(SvgImg.ai, width: 24, height: 24, colorFilter: colorFilter2)),
+              child: SvgPicture.asset(SvgImg.ai, width: 24, height: 24)),
         if (widget.onAskAI != null) const SizedBox(width: 10),
-        TapInk(
-            key: ValueKey(widget.model.isBookmark),
-            radius: 6,
-            pad: 4,
-            onTap: widget.onBookmark,
-            child: SvgPicture.asset(
-              widget.provider.permanentIds.contains(widget.model.id) ? SvgImg.fillBook : SvgImg.bookmark,
-              width: 24,
-              height: 24,
-              colorFilter: colorFilter2,
-            )),
+        // Bookmark icon - commented out (not functional for now)
+        // TapInk(
+        //     key: ValueKey(widget.model.isBookmark),
+        //     radius: 6,
+        //     pad: 4,
+        //     onTap: widget.onBookmark,
+        //     child: SvgPicture.asset(
+        //       widget.provider.permanentIds.contains(widget.model.id) ? SvgImg.fillBook : SvgImg.bookmark,
+        //       width: 24,
+        //       height: 24,
+        //       colorFilter: colorFilter2,
+        //     )),
         allSettings.value.isVoiceEnabled == false ? const SizedBox() : const SizedBox(width: 10),
         allSettings.value.isVoiceEnabled == false
             ? const SizedBox()
@@ -92,11 +93,12 @@ class _PostFeatureWrapState extends State<PostFeatureWrap> {
                             ),
                     ))),
         const SizedBox(width: 8),
-        TapInk(
-            pad: 4,
-            radius: 6,
-            onTap: widget.onShare,
-            child: SvgPicture.asset(SvgImg.share, width: 24, height: 24, colorFilter: colorFilter2)),
+        // Share icon - commented out (not functional for now)
+        // TapInk(
+        //     pad: 4,
+        //     radius: 6,
+        //     onTap: widget.onShare,
+        //     child: SvgPicture.asset(SvgImg.share, width: 24, height: 24, colorFilter: colorFilter2)),
       ],
     );
   }

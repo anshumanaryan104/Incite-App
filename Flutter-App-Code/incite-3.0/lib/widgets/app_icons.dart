@@ -26,18 +26,34 @@ class RectangleAppIcon extends StatelessWidget {
               width: width ?? 80,
               height: height ?? 80,
               errorWidget: (val, d, e) {
-                return Image.asset(
-                  'assets/images/logo.png',
-                  width: width ?? 80,
-                  height: height ?? 80,
-                );
+                return _buildPolymathText(width ?? 80, height ?? 25);
               },
             )
-          : Image.asset(
-              'assets/images/logo.png',
-              width: width ?? 80,
-              height: height ?? 80,
-            ),
+          : _buildPolymathText(width ?? 80, height ?? 25),
+    );
+  }
+
+  Widget _buildPolymathText(double width, double height) {
+    return ShaderMask(
+      shaderCallback: (bounds) => LinearGradient(
+        colors: [
+          Color(0xFFFF6B6B), // Coral
+          Color(0xFFB8A4D4), // Purple
+        ],
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+      ).createShader(bounds),
+      child: Text(
+        'Polymath',
+        style: TextStyle(
+          fontSize: height * 0.8,
+          fontFamily: 'Roboto',
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+          letterSpacing: -0.5,
+          decoration: TextDecoration.none,
+        ),
+      ),
     );
   }
 }
@@ -59,18 +75,34 @@ class RectangleAppNoIcon extends StatelessWidget {
             width: width ?? 80,
             height: height ?? 80,
             errorWidget: (val, d, e) {
-              return Image.asset(
-                'assets/images/logo.png',
-                width: width ?? 80,
-                height: height ?? 80,
-              );
+              return _buildPolymathText(width ?? 80, height ?? 25);
             },
           )
-        : Image.asset(
-            'assets/images/logo.png',
-            width: width ?? 80,
-            height: height ?? 80,
-          );
+        : _buildPolymathText(width ?? 80, height ?? 25);
+  }
+
+  Widget _buildPolymathText(double width, double height) {
+    return ShaderMask(
+      shaderCallback: (bounds) => LinearGradient(
+        colors: [
+          Color(0xFFFF6B6B), // Coral
+          Color(0xFFB8A4D4), // Purple
+        ],
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+      ).createShader(bounds),
+      child: Text(
+        'Polymath',
+        style: TextStyle(
+          fontSize: height * 0.8,
+          fontFamily: 'Roboto',
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+          letterSpacing: -0.5,
+          decoration: TextDecoration.none,
+        ),
+      ),
+    );
   }
 }
 
@@ -96,20 +128,34 @@ class AppIcon extends StatelessWidget {
             height: height ?? 100,
             fit: fit,
             errorWidget: (val, d, e) {
-              return Image.asset(
-                'assets/images/logo.png',
-                width: width ?? 100,
-                height: height ?? 100,
-                fit: fit,
-              );
+              return _buildPolymathText(width ?? 100, height ?? 30);
             },
           )
-        : Image.asset(
-            'assets/images/logo.png',
-            width: width ?? 100,
-            height: height ?? 100,
-            fit: fit,
-          );
+        : _buildPolymathText(width ?? 100, height ?? 30);
+  }
+
+  Widget _buildPolymathText(double width, double height) {
+    return ShaderMask(
+      shaderCallback: (bounds) => LinearGradient(
+        colors: [
+          Color(0xFFFF6B6B), // Coral
+          Color(0xFFB8A4D4), // Purple
+        ],
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+      ).createShader(bounds),
+      child: Text(
+        'Polymath',
+        style: TextStyle(
+          fontSize: height * 0.9,
+          fontFamily: 'Roboto',
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+          letterSpacing: -0.8,
+          decoration: TextDecoration.none,
+        ),
+      ),
+    );
   }
 }
 

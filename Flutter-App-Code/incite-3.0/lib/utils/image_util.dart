@@ -43,8 +43,9 @@ class SvgImg {
 
 
 class Img {
-  
+
   static String logo = '${images}app_icon.png';
+  static String ai = '${images}ai.png';
   static String img1 = '${images}img1.jpg';
 
   static String img2 = '${images}img2.jpg';

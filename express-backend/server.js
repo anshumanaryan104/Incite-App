@@ -52,12 +52,12 @@ async function connectDB() {
 
 // Mock data for testing
 const mockSettings = {
-    app_name: 'News App',
+    app_name: 'Polymath',
     primary_color: '#FF6B6B',
     secondary_color: '#4ECDC4',
     app_version: '1.0.0',
-    android_schema: 'incite://blog',
-    ios_schema: 'incite://blog',
+    android_schema: 'polymath://blog',
+    ios_schema: 'polymath://blog',
     enable_ads: '0',
     enable_fb_ads: '0',
     enable_os_notifications: '0'
@@ -225,7 +225,7 @@ app.get('/api/localisation-list', (req, res) => {
     res.json({
         success: true,
         data: {
-            "app_name": "News App",
+            "app_name": "Polymath",
             "home": "Home",
             "categories": "Categories",
             "bookmarks": "Bookmarks",
@@ -284,7 +284,7 @@ app.post('/api/signup', async (req, res) => {
 // Default route
 app.get('/', (req, res) => {
     res.json({
-        message: 'News App Express Backend',
+        message: 'Polymath Express Backend',
         status: 'Running',
         apis: {
             settings: '/api/setting-list',
@@ -349,10 +349,11 @@ if (USE_SUPABASE) {
         });
     });
 
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
         console.log(`
 🚀 Express server running at http://localhost:${PORT}
 📱 For Flutter app use: http://10.0.2.2:${PORT}
+🌐 For physical device use: http://172.21.158.105:${PORT}
 🗄️  Using Supabase Database
         `);
     });
@@ -380,10 +381,11 @@ if (USE_SUPABASE) {
     });
 
     connectDB().then(() => {
-        app.listen(PORT, () => {
+        app.listen(PORT, '0.0.0.0', () => {
             console.log(`
 🚀 Express server running at http://localhost:${PORT}
 📱 For Flutter app use: http://10.0.2.2:${PORT}
+🌐 For physical device use: http://172.21.158.105:${PORT}
         `);
         });
     });
