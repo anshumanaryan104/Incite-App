@@ -809,6 +809,7 @@ class _BlogPageState extends State<BlogPage> with WidgetsBindingObserver {
                                                   context: context,
                                                   builder: (BuildContext context) {
                                                     return AskAIDialog(
+                                                      articleId: blog.id ?? 0,
                                                       articleTitle: blog.title ?? '',
                                                       articleContent: blog.description ?? '',
                                                     );

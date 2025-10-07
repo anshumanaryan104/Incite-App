@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
+import '../api_controller/ai_controller.dart';
 
 class AskAIDialog extends StatefulWidget {
+  final int articleId;
   final String articleTitle;
   final String articleContent;
 
   const AskAIDialog({
     Key? key,
+    required this.articleId,
     required this.articleTitle,
     required this.articleContent,
   }) : super(key: key);
@@ -18,6 +22,37 @@ class _AskAIDialogState extends State<AskAIDialog> {
   final TextEditingController _questionController = TextEditingController();
   final List<Map<String, String>> _messages = [];
   final ScrollController _scrollController = ScrollController();
+  final GetStorage _storage = GetStorage();
+
+  bool _isLoading = false;
+  bool _isSessionInitialized = false;
+  late String _userId;
+  late String _threadId; // Unique thread ID per user + article
+
+  @override
+  void initState() {
+    super.initState();
+    _userId = _getOrCreateUserId();
+    _threadId = '${_userId}_article_${widget.articleId}'; // Unique thread per article
+    _initializeSession();
+  }
+
+  // Get or create persistent user ID for chat history
+  String _getOrCreateUserId() {
+    // Try to get existing userId from storage
+    String? existingUserId = _storage.read('ai_user_id');
+
+    if (existingUserId != null && existingUserId.isNotEmpty) {
+      print('📱 Using existing userId: $existingUserId');
+      return existingUserId;
+    }
+
+    // Create new userId and save it
+    String newUserId = 'user_${DateTime.now().millisecondsSinceEpoch}';
+    _storage.write('ai_user_id', newUserId);
+    print('🆕 Created new userId: $newUserId');
+    return newUserId;
+  }
 
   @override
   void dispose() {
@@ -26,25 +61,123 @@ class _AskAIDialogState extends State<AskAIDialog> {
     super.dispose();
   }
 
-  void _sendQuestion() {
+  // Initialize AI session when dialog opens
+  Future<void> _initializeSession() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // First, try to load chat history
+      print('📜 Attempting to load chat history for thread: $_threadId');
+      final history = await AIController.getChatHistory(
+        articleId: widget.articleId,
+        userId: _threadId, // Use threadId instead of userId
+      );
+
+      // Always initialize session (even if history exists)
+      // This ensures Express backend has the session cached
+      print('🔄 Initializing Express session...');
+      await AIController.initializeSession(
+        articleId: widget.articleId,
+        userId: _threadId,
+      );
+
+      // If history exists, load it (without greeting message)
+      if (history.isNotEmpty) {
+        setState(() {
+          _messages.addAll(history);
+          _isSessionInitialized = true;
+          _isLoading = false;
+        });
+        print('✅ Loaded ${history.length} messages from history');
+        _scrollToBottom();
+        return;
+      }
+
+      // No history - show greeting message
+      setState(() {
+        _isSessionInitialized = true;
+        _isLoading = false;
+
+        // Add greeting message only for new sessions
+        _messages.add({
+          'type': 'ai',
+          'text': 'Hello! I\'m your AI assistant. I can help answer any questions you have about this article. What would you like to know?',
+        });
+      });
+
+      print('✅ AI Session initialized for article ${widget.articleId}');
+
+      // Auto-scroll to show greeting
+      _scrollToBottom();
+    } catch (e) {
+      setState(() => _isLoading = false);
+      print('❌ Failed to initialize session: $e');
+      _showError('Failed to start AI chat. Please try again.');
+    }
+  }
+
+  // Send question to AI
+  Future<void> _sendQuestion() async {
     if (_questionController.text.trim().isEmpty) return;
+    if (!_isSessionInitialized) {
+      _showError('Please wait for AI to initialize...');
+      return;
+    }
+
+    final question = _questionController.text.trim();
 
     setState(() {
       _messages.add({
         'type': 'user',
-        'text': _questionController.text.trim(),
+        'text': question,
       });
-
-      // Simulated AI response (replace with actual API call later)
-      _messages.add({
-        'type': 'ai',
-        'text': 'AI response coming soon! This feature is under development.',
-      });
+      _isLoading = true;
     });
 
     _questionController.clear();
+    _scrollToBottom();
 
-    // Scroll to bottom
+    try {
+      // Call AI API with threadId
+      final answer = await AIController.askQuestion(
+        question: question,
+        userId: _threadId, // Use threadId instead of userId
+      );
+
+      setState(() {
+        _messages.add({
+          'type': 'ai',
+          'text': answer,
+        });
+        _isLoading = false;
+      });
+
+      _scrollToBottom();
+    } catch (e) {
+      setState(() => _isLoading = false);
+      print('❌ Failed to get answer: $e');
+
+      setState(() {
+        _messages.add({
+          'type': 'ai',
+          'text': 'Sorry, I couldn\'t process your question. Please try again.',
+        });
+      });
+
+      _scrollToBottom();
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  void _scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -134,14 +267,19 @@ class _AskAIDialogState extends State<AskAIDialog> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.chat_bubble_outline,
-                              size: 60,
-                              color: Colors.grey[600],
-                            ),
+                            if (_isLoading && !_isSessionInitialized)
+                              const CircularProgressIndicator(color: Color(0xFFFF8B7B))
+                            else
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 60,
+                                color: Colors.grey[600],
+                              ),
                             const SizedBox(height: 16),
                             Text(
-                              'Ask me anything about this article',
+                              _isLoading && !_isSessionInitialized
+                                  ? 'Initializing AI...'
+                                  : 'Ask me anything about this article',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey[500],
@@ -150,41 +288,71 @@ class _AskAIDialogState extends State<AskAIDialog> {
                           ],
                         ),
                       )
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          final message = _messages[index];
-                          final isUser = message['type'] == 'user';
+                    : Column(
+                        children: [
+                          Expanded(
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              padding: const EdgeInsets.all(16),
+                              itemCount: _messages.length,
+                              itemBuilder: (context, index) {
+                                final message = _messages[index];
+                                final isUser = message['type'] == 'user';
 
-                          return Align(
-                            alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                            child: Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              constraints: BoxConstraints(
-                                maxWidth: MediaQuery.of(context).size.width * 0.65,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isUser
-                                    ? const Color(0xFFFF8B7B) // Pink/salmon like screenshot
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(18),
-                              ),
-                              child: Text(
-                                message['text'] ?? '',
-                                style: TextStyle(
-                                  color: isUser ? Colors.white : Colors.black87,
-                                  fontSize: 14,
-                                ),
+                                return Align(
+                                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                                  child: Container(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    constraints: BoxConstraints(
+                                      maxWidth: MediaQuery.of(context).size.width * 0.65,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isUser
+                                          ? const Color(0xFFFF8B7B) // Pink/salmon like screenshot
+                                          : Colors.white,
+                                      borderRadius: BorderRadius.circular(18),
+                                    ),
+                                    child: Text(
+                                      message['text'] ?? '',
+                                      style: TextStyle(
+                                        color: isUser ? Colors.white : Colors.black87,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          if (_isLoading && _isSessionInitialized)
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Color(0xFFFF8B7B),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'AI is thinking...',
+                                    style: TextStyle(
+                                      color: Colors.grey[400],
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          );
-                        },
+                        ],
                       ),
               ),
             ),

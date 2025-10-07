@@ -325,6 +325,10 @@ if (USE_SUPABASE) {
     app.use('/api/admin/articles', adminArticleRoutes);
     app.use('/api/admin/categories', adminCategoryRoutes);
 
+    // Add AI Chatbot routes
+    const aiChatbotRoutes = require('./routes/ai-chatbot');
+    app.use('/api', aiChatbotRoutes);
+
     // Add 404 handler after routes
     app.use((req, res) => {
         console.log(`❌ 404 Not Found: ${req.url}`);

@@ -1,0 +1,204 @@
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from langchain_openai import ChatOpenAI
+from langgraph.graph import StateGraph, START, END
+from langchain_core.messages import HumanMessage, SystemMessage, BaseMessage
+from typing import Annotated, TypedDict
+import operator
+from langgraph.checkpoint.memory import MemorySaver
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+app = FastAPI(title="News AI Chatbot API")
+
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Change to specific origins in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# LangGraph State Definition
+class ChatbotState(TypedDict):
+    title: str
+    summary: str
+    contents: str
+    messages: Annotated[list[BaseMessage], operator.add]
+
+# Initialize LLM and Memory
+# Using MemorySaver - history will persist as long as server is running
+# DO NOT restart server while testing chat history!
+memory = MemorySaver()
+
+llm = ChatOpenAI(
+    model="gpt-5",
+    temperature=0,
+    api_key=os.getenv("OPENAI_API_KEY")
+)
+tool = {"type": "web_search_preview"}
+llm_with_tools = llm.bind_tools([tool])
+
+# Request Models
+class ChatRequest(BaseModel):
+    title: str
+    summary: str
+    contents: str
+    question: str
+    thread_id: str = "default"
+
+class ChatResponse(BaseModel):
+    answer: str
+    thread_id: str
+
+class HistoryRequest(BaseModel):
+    thread_id: str
+
+class MessageHistory(BaseModel):
+    role: str  # 'user' or 'ai'
+    content: str
+
+class HistoryResponse(BaseModel):
+    messages: list[MessageHistory]
+    thread_id: str
+
+# LangGraph Node
+def chatbot_node(state: ChatbotState) -> ChatbotState:
+    system_message = SystemMessage(
+        content=f"""You are a helpful AI assistant for a news app. Your job is to answer user questions about a specific news article they are reading.
+
+ARTICLE INFORMATION:
+Title: {state['title']}
+Summary: {state['summary']}
+Content: {state['contents']}
+
+INSTRUCTIONS:
+1. First, try to answer based on the article content.
+2. If the article mentions the answer, cite it directly.
+3. If the article doesn't have enough information, use web search to find the current, accurate answer.
+4. Keep your response concise and factual (2-3 sentences max).
+5. If using web search, mention that you verified it with current information.
+6. Only answer questions related to the article. If the question is not related to the article, say that this question is not related to the article and don't use web search.
+"""
+    )
+
+    # Get the last message (user question)
+    user_messages = [msg for msg in state["messages"] if isinstance(msg, HumanMessage)]
+    if user_messages:
+        latest_question = user_messages[-1]
+        response = llm_with_tools.invoke([system_message, latest_question])
+        return {"messages": [response]}
+
+    return {"messages": []}
+
+# Build LangGraph
+def build_graph():
+    builder = StateGraph(ChatbotState)
+    builder.add_node("chatbot_node", chatbot_node)
+    builder.add_edge(START, "chatbot_node")
+    builder.add_edge("chatbot_node", END)
+    return builder.compile(checkpointer=memory)
+
+graph = build_graph()
+
+# API Endpoints
+@app.get("/")
+async def root():
+    return {"message": "News AI Chatbot API is running", "version": "1.0"}
+
+@app.post("/api/chat", response_model=ChatResponse)
+async def chat(request: ChatRequest):
+    try:
+        # Prepare input data
+        input_data = {
+            "title": request.title,
+            "summary": request.summary,
+            "contents": request.contents,
+            "messages": [HumanMessage(content=request.question)]
+        }
+
+        # Configuration with thread ID for conversation memory
+        config = {"configurable": {"thread_id": request.thread_id}}
+
+        # Run the graph
+        result = graph.invoke(input_data, config=config)
+
+        # Extract the response
+        if result and "messages" in result:
+            messages = result["messages"]
+            # Get the last AI message
+            ai_messages = [msg for msg in messages if hasattr(msg, 'content')]
+            if ai_messages:
+                # Handle both string and list content formats from GPT-5
+                content = ai_messages[-1].content
+                if isinstance(content, list):
+                    # GPT-5 returns list of content blocks
+                    answer = "".join([block.get('text', '') if isinstance(block, dict) else str(block) for block in content])
+                else:
+                    answer = str(content)
+                return ChatResponse(answer=answer, thread_id=request.thread_id)
+
+        raise HTTPException(status_code=500, detail="No response generated")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
+
+@app.post("/api/chat/history", response_model=HistoryResponse)
+async def get_chat_history(request: HistoryRequest):
+    """
+    Retrieve chat history for a specific thread (user + article)
+    """
+    try:
+        # Get state from memory using thread_id
+        config = {"configurable": {"thread_id": request.thread_id}}
+
+        # Try to get existing state
+        state = memory.get(config)
+
+        messages_list = []
+
+        if state and 'channel_values' in state:
+            # Extract messages from state
+            channel_values = state['channel_values']
+            if 'messages' in channel_values:
+                for msg in channel_values['messages']:
+                    if isinstance(msg, HumanMessage):
+                        messages_list.append(MessageHistory(
+                            role="user",
+                            content=str(msg.content)
+                        ))
+                    elif hasattr(msg, 'content'):
+                        # AI message
+                        content = msg.content
+                        if isinstance(content, list):
+                            text = "".join([block.get('text', '') if isinstance(block, dict) else str(block) for block in content])
+                        else:
+                            text = str(content)
+                        messages_list.append(MessageHistory(
+                            role="ai",
+                            content=text
+                        ))
+
+        return HistoryResponse(
+            messages=messages_list,
+            thread_id=request.thread_id
+        )
+
+    except Exception as e:
+        # If no history exists, return empty
+        return HistoryResponse(
+            messages=[],
+            thread_id=request.thread_id
+        )
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "ai-chatbot"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
