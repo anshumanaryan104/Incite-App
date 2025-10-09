@@ -9,15 +9,35 @@ import operator
 from langgraph.checkpoint.memory import MemorySaver
 import os
 from dotenv import load_dotenv
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-app = FastAPI(title="News AI Chatbot API")
+# Get environment configuration
+ENV = os.getenv("ENVIRONMENT", "development")
+DEBUG = ENV == "development"
+
+# Allowed origins for CORS (configure for production)
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+
+app = FastAPI(
+    title="News AI Chatbot API",
+    description="AI-powered chatbot for news articles using LangGraph and OpenAI GPT-5",
+    version="1.0.0",
+    debug=DEBUG
+)
 
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change to specific origins in production
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -35,13 +55,21 @@ class ChatbotState(TypedDict):
 # DO NOT restart server while testing chat history!
 memory = MemorySaver()
 
+# OpenAI configuration
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    logger.error("OPENAI_API_KEY not found in environment variables")
+    raise ValueError("OPENAI_API_KEY is required")
+
+logger.info("Initializing OpenAI GPT-5 model...")
 llm = ChatOpenAI(
     model="gpt-5",
     temperature=0,
-    api_key=os.getenv("OPENAI_API_KEY")
+    api_key=OPENAI_API_KEY
 )
 tool = {"type": "web_search_preview"}
 llm_with_tools = llm.bind_tools([tool])
+logger.info("AI model initialized successfully")
 
 # Request Models
 class ChatRequest(BaseModel):
@@ -113,6 +141,8 @@ async def root():
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     try:
+        logger.info(f"Processing chat request for thread_id: {request.thread_id}")
+
         # Prepare input data
         input_data = {
             "title": request.title,
@@ -140,11 +170,17 @@ async def chat(request: ChatRequest):
                     answer = "".join([block.get('text', '') if isinstance(block, dict) else str(block) for block in content])
                 else:
                     answer = str(content)
+
+                logger.info(f"Successfully generated response for thread_id: {request.thread_id}")
                 return ChatResponse(answer=answer, thread_id=request.thread_id)
 
+        logger.error("No response generated from AI model")
         raise HTTPException(status_code=500, detail="No response generated")
 
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Error processing chat request: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
 
 @app.post("/api/chat/history", response_model=HistoryResponse)
@@ -197,8 +233,37 @@ async def get_chat_history(request: HistoryRequest):
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "ai-chatbot"}
+    """Health check endpoint for load balancers and monitoring"""
+    return {
+        "status": "healthy",
+        "service": "ai-chatbot",
+        "version": "1.0.0",
+        "environment": ENV
+    }
+
+# Startup and shutdown events
+@app.on_event("startup")
+async def startup_event():
+    logger.info("AI Chatbot API is starting up...")
+    logger.info(f"Environment: {ENV}")
+    logger.info(f"Debug mode: {DEBUG}")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    logger.info("AI Chatbot API is shutting down...")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+    # Get port from environment variable or use default
+    PORT = int(os.getenv("PORT", 8000))
+    HOST = os.getenv("HOST", "0.0.0.0")
+
+    logger.info(f"Starting server on {HOST}:{PORT}")
+
+    uvicorn.run(
+        app,
+        host=HOST,
+        port=PORT,
+        log_level="info" if DEBUG else "warning"
+    )

@@ -1,0 +1,46 @@
+{
+  "name": "news-ai-chatbot-backend",
+  "version": "1.0.0",
+  "description": "FastAPI-based AI chatbot backend for news app using LangGraph and OpenAI GPT-5",
+  "main": "chatbot_api.py",
+  "scripts": {
+    "start": "uvicorn chatbot_api:app --host 0.0.0.0 --port 8000",
+    "dev": "uvicorn chatbot_api:app --host 0.0.0.0 --port 8000 --reload",
+    "install": "pip install -r requirements.txt",
+    "test": "python test_api.py"
+  },
+  "keywords": [
+    "ai",
+    "chatbot",
+    "fastapi",
+    "langgraph",
+    "openai",
+    "gpt-5",
+    "news",
+    "python"
+  ],
+  "author": "News App Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/news_app.git"
+  },
+  "engines": {
+    "python": ">=3.10"
+  },
+  "dependencies": {
+    "fastapi": "0.115.0",
+    "uvicorn": "0.31.0",
+    "langchain-openai": "0.2.2",
+    "langgraph": "0.2.34",
+    "langchain-core": "0.3.9",
+    "python-dotenv": "1.0.1",
+    "pydantic": "2.9.2",
+    "aiosqlite": "latest"
+  },
+  "aws": {
+    "runtime": "python3.12",
+    "service": "elastic-beanstalk",
+    "platform": "Python 3.12 running on 64bit Amazon Linux 2023"
+  }
+}
