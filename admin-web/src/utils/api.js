@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:3000/api'
+// Production AWS EC2 Backend
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://15.206.148.126:3000/api'
 
 // Get token from localStorage
 const getToken = () => {
