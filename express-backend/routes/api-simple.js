@@ -2153,4 +2153,25 @@ router.post('/add-analytics', async (req, res) => {
     apiResponse(res, true, null, 'Analytics recorded', 200);
 });
 
+// =====================================================
+// HEALTH CHECK / ROOT ENDPOINT
+// =====================================================
+router.get('/', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Polymath Express Backend API',
+        status: 'Running',
+        version: '1.0.0',
+        environment: process.env.NODE_ENV || 'development',
+        endpoints: {
+            articles: '/api/view-all-post',
+            articleDetail: '/api/blog-detail/:id',
+            categories: '/api/categories',
+            settings: '/api/settings',
+            aiChat: '/api/ask-ai',
+            aiStatus: '/api/ai-status'
+        }
+    });
+});
+
 module.exports = router;
