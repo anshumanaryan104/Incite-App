@@ -64,39 +64,18 @@ router.post('/ask-ai/init', async (req, res) => {
 
         console.log(`✅ Article found: "${article.title}"`);
 
-        // Store article context in session
+        // Store article context in session with question counter
         sessionStore.set(userId, {
             articleId: article.id,
             title: article.title,
             summary: article.description || '',
             contents: article.content || '',
             image: article.featured_image,
+            questionCount: 0, // Track number of questions asked
             createdAt: Date.now()
         });
 
         console.log(`💾 Session stored for user ${userId}`);
-
-        // Call AI backend to initialize thread with article context
-        const aiRequest = {
-            title: article.title,
-            summary: article.description || '',
-            contents: article.content || '',
-            question: "Initialize session", // Dummy question to set context
-            thread_id: userId
-        };
-
-        console.log('📡 Initializing AI thread with article context...');
-
-        await axios.post(
-            `${AI_API_URL}/api/chat`,
-            aiRequest,
-            {
-                headers: { 'Content-Type': 'application/json' },
-                timeout: 90000 // Increased to 90 seconds for GPT-5 with web search
-            }
-        );
-
-        console.log('✅ AI thread initialized');
 
         // Return session info
         res.json({
@@ -169,14 +148,33 @@ router.post('/ask-ai/query', async (req, res) => {
         console.log(`💬 User ${userId} asking: "${question}"`);
         console.log(`📄 Using cached article: "${session.title}"`);
 
-        // Prepare request for AI API using cached session data
-        const aiRequest = {
-            title: session.title,
-            summary: session.summary,
-            contents: session.contents,
-            question: question,
-            thread_id: userId
-        };
+        // Check if this is the first question
+        const isFirstQuestion = session.questionCount === 0;
+
+        // Prepare request for AI API
+        let aiRequest;
+
+        if (isFirstQuestion) {
+            // First question: Send full article context
+            console.log('📤 First question - sending full article context');
+            aiRequest = {
+                title: session.title,
+                summary: session.summary,
+                contents: session.contents,
+                question: question,
+                thread_id: userId
+            };
+        } else {
+            // Subsequent questions: Only send question (AI has context in memory)
+            console.log('📤 Follow-up question - sending question only (AI has context)');
+            aiRequest = {
+                title: session.title,        // Keep minimal context for AI prompt
+                summary: session.summary,    // Keep minimal context for AI prompt
+                contents: '',                // Empty - AI uses cached context from thread
+                question: question,
+                thread_id: userId
+            };
+        }
 
         console.log('📡 Calling AI API...');
 
@@ -190,7 +188,11 @@ router.post('/ask-ai/query', async (req, res) => {
             }
         );
 
-        console.log('✅ AI Response received');
+        // Increment question counter
+        session.questionCount++;
+        sessionStore.set(userId, session);
+
+        console.log(`✅ AI Response received (Question #${session.questionCount})`);
 
         // Return AI response
         res.json({
