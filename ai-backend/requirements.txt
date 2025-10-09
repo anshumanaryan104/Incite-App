@@ -1,8 +1,8 @@
 fastapi==0.115.0
 uvicorn[standard]==0.31.0
-langchain-openai==0.2.2
+langchain-openai>=0.3.26
 langgraph==0.2.34
-langchain-core==0.3.9
+langchain-core>=0.3.27
 python-dotenv==1.0.1
 pydantic==2.9.2
 aiosqlite
