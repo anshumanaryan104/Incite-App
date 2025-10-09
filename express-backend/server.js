@@ -1,30 +1,70 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
+const morgan = require('morgan');
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const IS_PRODUCTION = NODE_ENV === 'production';
 
 // Check if we should use Supabase
 const USE_SUPABASE = process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY;
 
-// Middleware
+// Security Middleware - Helmet
+app.use(helmet({
+    contentSecurityPolicy: false, // Disable for API server
+    crossOriginEmbedderPolicy: false
+}));
+
+// Compression Middleware
+app.use(compression());
+
+// Request Logging
+if (IS_PRODUCTION) {
+    app.use(morgan('combined')); // Detailed logs in production
+} else {
+    app.use(morgan('dev')); // Concise logs in development
+}
+
+// Rate Limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: IS_PRODUCTION ? 100 : 1000, // Limit requests per IP
+    message: 'Too many requests from this IP, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use('/api/', limiter);
+
+// CORS Configuration
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : ['*'];
+
 app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: IS_PRODUCTION ? allowedOrigins : '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'api-token', 'language-code'],
     credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Debug logging middleware
-app.use((req, res, next) => {
-    console.log(`📍 ${req.method} ${req.url}`);
-    console.log('Headers:', req.headers);
-    next();
-});
+// Body Parser Middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Debug logging middleware (only in development)
+if (!IS_PRODUCTION) {
+    app.use((req, res, next) => {
+        console.log(`📍 ${req.method} ${req.url}`);
+        console.log('Headers:', req.headers);
+        next();
+    });
+}
 
 // Force JSON responses for API routes only
 app.use('/api/*', (req, res, next) => {
@@ -355,6 +395,8 @@ if (USE_SUPABASE) {
 📱 For Flutter app use: http://10.0.2.2:${PORT}
 🌐 For physical device use: http://172.21.158.105:${PORT}
 🗄️  Using Supabase Database
+🔒 Environment: ${NODE_ENV}
+🛡️  Security: Helmet + Rate Limiting Enabled
         `);
     });
 } else {
