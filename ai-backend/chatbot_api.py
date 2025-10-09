@@ -65,11 +65,12 @@ logger.info("Initializing OpenAI GPT-5 model...")
 llm = ChatOpenAI(
     model="gpt-5",
     temperature=0,
-    api_key=OPENAI_API_KEY
+    api_key=OPENAI_API_KEY,
+    output_version="responses/v1"  # Required for web_search_preview tool
 )
 tool = {"type": "web_search_preview"}
 llm_with_tools = llm.bind_tools([tool])
-logger.info("AI model initialized successfully")
+logger.info("AI model initialized successfully with web search")
 
 # Request Models
 class ChatRequest(BaseModel):
