@@ -43,13 +43,7 @@ class _PostFeatureWrapState extends State<PostFeatureWrap> {
         colorFilterMode(context, color: dark(context) ? ColorUtil.white : Theme.of(context).primaryColor);
     return Row(
       children: [
-        if (widget.onAskAI != null)
-          TapInk(
-              pad: 4,
-              radius: 6,
-              onTap: widget.onAskAI!,
-              child: SvgPicture.asset(SvgImg.ai, width: 24, height: 24)),
-        if (widget.onAskAI != null) const SizedBox(width: 10),
+        // All icons removed from top bar - Ask AI moved to floating button
         // Bookmark icon - commented out (not functional for now)
         // TapInk(
         //     key: ValueKey(widget.model.isBookmark),
@@ -62,37 +56,6 @@ class _PostFeatureWrapState extends State<PostFeatureWrap> {
         //       height: 24,
         //       colorFilter: colorFilter2,
         //     )),
-        allSettings.value.isVoiceEnabled == false ? const SizedBox() : const SizedBox(width: 10),
-        allSettings.value.isVoiceEnabled == false
-            ? const SizedBox()
-            : TapInk(
-                pad: 4,
-                radius: 6,
-                onTap: widget.onVoice,
-                child: SizedBox(
-                    width: 26,
-                    height: 26,
-                    child: Container(
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                              width: 1.25,
-                              color: dark(context) ? Colors.white : Theme.of(context).primaryColor)),
-                      child: widget.isVolume
-                          ? Padding(
-                              padding: const EdgeInsets.all(2),
-                              child: Icon(Icons.pause_rounded,
-                                  size: 20,
-                                  color: dark(context) ? Colors.white : Theme.of(context).primaryColor),
-                            )
-                          : Padding(
-                              padding: const EdgeInsets.all(2.0),
-                              child: Icon(Icons.play_arrow_rounded,
-                                  size: 20,
-                                  color: dark(context) ? Colors.white : Theme.of(context).primaryColor),
-                            ),
-                    ))),
-        const SizedBox(width: 8),
         // Share icon - commented out (not functional for now)
         // TapInk(
         //     pad: 4,

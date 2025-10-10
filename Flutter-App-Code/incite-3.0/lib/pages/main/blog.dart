@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:html/parser.dart';
 import 'package:incite/api_controller/news_repo.dart';
 // Signup removed for MVP
@@ -597,24 +598,26 @@ class _BlogPageState extends State<BlogPage> with WidgetsBindingObserver {
                                                                 ),
                                                               ),
                                                             ),
-                                                  visibleAtScreenshot(orientation, context),
+                                                  // visibleAtScreenshot removed - no longer needed
                                                 ],
                                               ),
+                                              // Added professional gap between image and title
+                                              SizedBox(height: height10(context) * 2.2),
                                               orientation == Orientation.landscape
                                                   ? const SizedBox()
                                                   : Padding(
-                                                      padding: const EdgeInsets.only(left: 16, right: 16),
+                                                      padding: const EdgeInsets.only(left: 20, right: 20),
                                                       child: TitleWidget(
                                                           key: Key('${blog.hashCode}'),
                                                           title: blog.title.toString()),
                                                     ),
-                                              SizedBox(height: height10(context)),
+                                              SizedBox(height: height10(context) * 1.2),
                                               orientation == Orientation.landscape
                                                   ? const SizedBox()
                                                   : Expanded(
                                                       flex: 2,
                                                       child: Padding(
-                                                        padding: const EdgeInsets.only(left: 16, right: 16),
+                                                        padding: const EdgeInsets.only(left: 20, right: 20),
                                                         child: Column(
                                                           crossAxisAlignment: CrossAxisAlignment.start,
                                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -713,213 +716,56 @@ class _BlogPageState extends State<BlogPage> with WidgetsBindingObserver {
                               ),
                             ),
                           ),
+                          // Top bar with category and icons removed
+                          const SizedBox(),
+                          // Floating Ask AI button in bottom right corner - larger size and moved up
                           orientation == Orientation.landscape
                               ? const SizedBox()
                               : Positioned(
-                                  top: blog.videoUrl != ''
-                                      ? height10(context) * 25.5 - 4
-                                      : height10(context) * 26.35 - 4,
-                                  left: -5,
-                                  right: -5,
-                                  child: Material(
-                                    elevation: 10,
-                                    color: Theme.of(context).scaffoldBackgroundColor,
+                                  bottom: 80,
+                                  right: 20,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      // Show Ask AI Dialog
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AskAIDialog(
+                                            articleId: blog.id ?? 0,
+                                            articleTitle: blog.title ?? '',
+                                            articleContent: blog.description ?? '',
+                                          );
+                                        },
+                                      );
+                                    },
                                     child: Container(
-                                      width: size(context).width + 10,
-                                      alignment: Alignment.center,
+                                      width: 64,
+                                      height: 64,
                                       decoration: BoxDecoration(
-                                        color: Theme.of(context).scaffoldBackgroundColor,
-                                        border: Border(
-                                          top: BorderSide(
-                                            color: Theme.of(context).primaryColor,
-                                            width: 2,
+                                        color: Theme.of(context).primaryColor,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.3),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 4),
                                           ),
-                                          bottom: BorderSide(
-                                            color: Theme.of(context).primaryColor,
-                                            width: 2,
+                                        ],
+                                      ),
+                                      child: Center(
+                                        child: SvgPicture.asset(
+                                          SvgImg.ai,
+                                          width: 34,
+                                          height: 34,
+                                          colorFilter: ColorFilter.mode(
+                                            Colors.white,
+                                            BlendMode.srcIn,
                                           ),
                                         ),
                                       ),
-                                      padding:
-                                          EdgeInsets.only(top: 8, bottom: 8, left: 17, right: 17),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Row(
-                                          children: blog.blogSubCategory != null &&
-                                                  blog.blogSubCategory!.isNotEmpty
-                                              ? [
-                                                  CategoryWrap(
-                                                      color: blog.blogSubCategory!.first.color != null
-                                                          ? hexToRgb(
-                                                              blog.blogSubCategory!.first.color.toString())
-                                                          : Colors.black,
-                                                      colored: blog.categoryColor.toString(),
-                                                      name: blog.blogSubCategory!.first.name.toString()),
-                                                ]
-                                              : [
-                                                  CategoryWrap(
-                                                      color: blog.categoryColor != null
-                                                          ? hexToRgb(blog.categoryColor.toString())
-                                                          : Colors.black,
-                                                      colored: blog.categoryColor.toString(),
-                                                      name: blog.categoryName.toString()),
-                                                ],
-                                        ),
-                                        Expanded(
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.end,
-                                            children: [
-                                              VisibilityDetector(
-                                                key: const Key("s"),
-                                          onVisibilityChanged: (visibilityInfo) async {
-                                            var visiblePercentage = visibilityInfo.visibleFraction * 100.0;
-
-                                            if (visiblePercentage != 100.0) {
-                                              if (isVolume) {
-                                                stop();
-                                                if (allSettings.value.googleApikey != null &&
-                                                    allSettings.value.isVoiceEnabled == true) {
-                                                  stops();
-                                                }
-                                                endTime = DateTime.now().toIso8601String();
-
-                                                ttsData = {
-                                                  "id": blog.id,
-                                                  "start_time": startTime,
-                                                  "end_time": endTime
-                                                };
-
-                                                provider!.addTtsData(ttsData['id'], ttsData['start_time'],
-                                                    ttsData['end_time']);
-                                              }
-
-                                              if (mounted) {
-                                                isVolume = false;
-                                                setState(() {});
-                                              }
-                                            }
-                                          },
-                                          child: PostFeatureWrap(
-                                              isVolume: isVolume,
-                                              onAskAI: () {
-                                                // Show Ask AI Dialog
-                                                showDialog(
-                                                  context: context,
-                                                  builder: (BuildContext context) {
-                                                    return AskAIDialog(
-                                                      articleId: blog.id ?? 0,
-                                                      articleTitle: blog.title ?? '',
-                                                      articleContent: blog.description ?? '',
-                                                    );
-                                                  },
-                                                );
-                                              },
-                                              onVoice: () async {
-                                                if (allSettings.value.googleApikey != null &&
-                                                    allSettings.value.isVoiceEnabled == true) {
-                                                  if (isVolume == false) {
-                                                    isVolume = true;
-                                                    if (blog.audioData == null) {
-                                                      await speech(
-                                                              parse("${blog.title}....${blog.description}")
-                                                                  .body!
-                                                                  .text)
-                                                          .then((value) async {
-                                                        if (value != null) {
-                                                          playLocal(value);
-                                                        }
-                                                      });
-                                                    } else {
-                                                      playLocal(audioLoad ?? blog.audioData as Uint8List);
-                                                    }
-                                                  } else {
-                                                    isVolume = true;
-                                                    stops();
-                                                  }
-                                                  setState(() {});
-                                                } else {
-                                                  if (isVolume == false) {
-                                                    init(parse("${blog.title}....${blog.description}")
-                                                        .body!
-                                                        .text);
-                                                    isVolume = true;
-                                                    //if (startTime == '') {
-                                                    startTime = DateTime.now().toIso8601String();
-                                                    ttsData = {
-                                                      "id": blog.id,
-                                                      "start_time": startTime,
-                                                      "end_time": endTime
-                                                    };
-                                                    setState(() {});
-                                                  } else {
-                                                    stop();
-                                                    endTime = DateTime.now().toIso8601String();
-                                                    ttsData = {
-                                                      "id": blog.id,
-                                                      "start_time": startTime,
-                                                      "end_time": endTime
-                                                    };
-                                                    provider!.addTtsData(ttsData['id'], ttsData['start_time'],
-                                                        ttsData['end_time']);
-                                                    isVolume = false;
-                                                  }
-                                                }
-                                                setState(() {});
-                                              },
-                                              provider: provider2,
-                                              model: blog,
-                                              isBookmarkContains: provider != null
-                                                  ? provider!.permanentIds.contains(blog.id)
-                                                  : false,
-                                              onBookmark: currentUser.value.id == null
-                                                  ? () {
-                                                      Navigator.pushNamed(context, '/LoginPage');
-                                                    }
-                                                  : () {
-                                                      if (!provider!.permanentIds.contains(blog.id)) {
-                                                        showCustomToast(
-                                                            context,
-                                                            allMessages.value.bookmarkSave ??
-                                                                'Bookmark Saved');
-                                                        provider!.addBookmarkData(blog.id!.toInt());
-                                                      } else {
-                                                        showCustomToast(
-                                                            context,
-                                                            allMessages.value.bookmarkRemove ??
-                                                                'Bookmark Removed');
-                                                        provider!.removeBookmarkData(blog.id!.toInt());
-                                                      }
-                                                      provider!.setBookmark(blog: blog);
-                                                      setState(() {});
-                                                    },
-                                              onShare: () async {
-                                                // await createDynamicLink(blog ?? Blog())
-                                                isShare = true;
-                                                setState(() {});
-                                                Future.delayed(const Duration(milliseconds: 100));
-                                                await captureScreenshot(previewContainer, isPost: true)
-                                                    .then((value) async {
-                                                  Future.delayed(const Duration(milliseconds: 10));
-                                                  final data2 = await convertToXFile(value!);
-                                                  Future.delayed(const Duration(milliseconds: 10));
-                                                  shareImage(
-                                                      data2, "${Urls.baseServer}blog-share?id=${blog.id}");
-                                                  provider!.addShareData(blog.id!.toInt());
-                                                  isShare = false;
-                                                  setState(() {});
-                                                });
-                                              }),
-                                              )
-                                            ],
-                                          ),
-                                        )
-                                      ],
                                     ),
                                   ),
                                 ),
-                              ),
                         ],
                       ),
                     ))),
