@@ -45,37 +45,32 @@ router.post('/login', async (req, res) => {
             return apiResponse(res, false, null, 'Username and password are required', 400);
         }
 
-        // Get user by username
-        const { data: user, error } = await supabase
-            .from('users')
+        // Get admin by username from admin_users table
+        const { data: admin, error } = await supabase
+            .from('admin_users')
             .select('*')
-            .eq('username', username.toLowerCase())
+            .eq('username', username)
             .single();
 
-        if (error || !user) {
+        if (error || !admin) {
             return apiResponse(res, false, null, 'Invalid username or password', 401);
         }
 
         // Verify password
-        const isPasswordValid = await bcrypt.compare(password, user.hashed_password);
+        const isPasswordValid = await bcrypt.compare(password, admin.hashed_password);
 
         if (!isPasswordValid) {
             return apiResponse(res, false, null, 'Invalid username or password', 401);
         }
 
-        // Check if user is admin
-        if (user.role !== 'admin' && user.role !== 'super_admin') {
-            return apiResponse(res, false, null, 'Only admins can login. Please use the Skip button.', 403);
-        }
-
-        // Return user data for admin
+        // Return admin data
         apiResponse(res, true, {
-            id: user.id,
-            username: user.username,
-            email: user.email || null,
-            name: user.name || username,
-            role: user.role,
-            created_at: user.created_at
+            id: admin.id,
+            username: admin.username,
+            email: admin.email || null,
+            name: admin.name || admin.username,
+            role: admin.role,
+            created_at: admin.created_at
         }, 'Admin login successful');
     } catch (error) {
         console.error('Error logging in:', error);
