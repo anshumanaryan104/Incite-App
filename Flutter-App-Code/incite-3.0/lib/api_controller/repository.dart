@@ -32,12 +32,12 @@ Future<Users?> signin(Users user, BuildContext context) async {
   try {
     final username = user.email;
 
-    // Admin login - no username check needed
+    // Admin login using admin_users table
     final msg = jsonEncode({
       "username": username,
       "password": user.password,
     });
-    final url = Uri.parse('${Urls.baseUrl}admin/login');
+    final url = Uri.parse('${Urls.baseUrl}login');  // Changed from admin/login to login
     final response = await http.post(
       url,
       body: msg,
@@ -49,13 +49,8 @@ Future<Users?> signin(Users user, BuildContext context) async {
     var res = json.decode(response.body);
 
     if (res['success'] == true) {
-      // Save admin token
-      if (res['data']['token'] != null) {
-        prefs?.setString('admin_token', res['data']['token']);
-      }
-
-      // Handle admin data structure
-      var adminData = res['data']['admin'] ?? res['data'];
+      // Response structure is flat now - data contains admin info directly
+      var adminData = res['data'];
       adminData['login_from'] = 'email';
 
       var userData = {'success': true, 'data': adminData};
