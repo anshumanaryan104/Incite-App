@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const { supabase } = require('../supabase-client');
+const { JWT_SECRET } = require('../middleware/auth');
 
 function apiResponse(res, success, data = null, message = null, statusCode = 200) {
     res.status(statusCode).json({ success, data, message });
@@ -63,14 +65,29 @@ router.post('/login', async (req, res) => {
             return apiResponse(res, false, null, 'Invalid username or password', 401);
         }
 
-        // Return admin data
+        // Generate JWT token
+        const token = jwt.sign(
+            {
+                userId: admin.id,
+                username: admin.username,
+                role: admin.role,
+                email: admin.email
+            },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        // Return admin data with token
         apiResponse(res, true, {
-            id: admin.id,
-            username: admin.username,
-            email: admin.email || null,
-            name: admin.name || admin.username,
-            role: admin.role,
-            created_at: admin.created_at
+            token: token,
+            admin: {
+                id: admin.id,
+                username: admin.username,
+                email: admin.email || null,
+                name: admin.name || admin.username,
+                role: admin.role,
+                created_at: admin.created_at
+            }
         }, 'Admin login successful');
     } catch (error) {
         console.error('Error logging in:', error);
