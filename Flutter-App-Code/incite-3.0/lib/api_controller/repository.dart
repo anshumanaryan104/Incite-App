@@ -37,7 +37,7 @@ Future<Users?> signin(Users user, BuildContext context) async {
       "username": username,
       "password": user.password,
     });
-    final url = Uri.parse('${Urls.baseUrl}login');  // Changed from admin/login to login
+    final url = Uri.parse('${Urls.baseUrl}admin/login');  // Use same endpoint as web panel
     final response = await http.post(
       url,
       body: msg,

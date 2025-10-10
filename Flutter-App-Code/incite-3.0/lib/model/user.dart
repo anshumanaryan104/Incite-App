@@ -17,6 +17,7 @@ class Users {
   String? cpassword;
   String? langCode;
   String? loginFrom;
+  String? role;  // Admin role: 'admin' or 'super_admin'
   Users();
 
   Users.fromJSON(Map<String, dynamic> jsonMap) {
@@ -35,6 +36,7 @@ class Users {
       isNewUser = jsonMap['is_new_user'];
       langCode = jsonMap['lang_code'];
       loginFrom = jsonMap['login_from'];
+      role = jsonMap['role'];  // Parse role from response
     } catch (e) {
       id = '';
       name = '';
