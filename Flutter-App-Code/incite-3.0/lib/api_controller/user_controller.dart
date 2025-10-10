@@ -488,6 +488,7 @@ class UserProvider extends ControllerMVC {
           prefs!.remove('current_user');
           prefs!.remove('bookmarks');
           prefs!.remove('isBookmark');
+          prefs!.remove('admin_role');  // Clear admin role on logout
           provider.bookmarkIds.clear();
           provider.permanentIds.clear();
           provider.bookmarks.clear();

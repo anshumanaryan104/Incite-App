@@ -59,6 +59,12 @@ Future<Users?> signin(Users user, BuildContext context) async {
       currentUser.value.isPageHome = true;
 
       currentUser.value.id = adminData['username']?.toString() ?? adminData['id']?.toString() ?? '';
+
+      // Save admin role to SharedPreferences for access control
+      if (adminData['role'] != null) {
+        prefs?.setString('admin_role', adminData['role']);
+      }
+
       if (currentUser.value.langCode != null) {
         for (var element in allLanguages) {
           if (element.language == currentUser.value.langCode) {
