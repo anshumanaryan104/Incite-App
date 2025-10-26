@@ -46,10 +46,10 @@ router.post('/ask-ai/init', async (req, res) => {
 
         console.log(`🎬 Initializing AI session for user ${userId} with article ${articleId}`);
 
-        // Fetch article from Supabase database
+        // Fetch article from Supabase database (with source_url for web scraping)
         const { data: article, error: dbError } = await supabase
             .from('articles')
-            .select('id, title, description, content, featured_image')
+            .select('id, title, description, featured_image, source_url')
             .eq('id', articleId)
             .eq('status', 'published')
             .single();
@@ -63,13 +63,14 @@ router.post('/ask-ai/init', async (req, res) => {
         }
 
         console.log(`✅ Article found: "${article.title}"`);
+        console.log(`🔗 Source URL: ${article.source_url || 'N/A'}`);
 
         // Store article context in session
         sessionStore.set(userId, {
             articleId: article.id,
             title: article.title,
             summary: article.description || '',
-            contents: article.content || '',
+            source_url: article.source_url || '',
             image: article.featured_image,
             createdAt: Date.now()
         });
@@ -77,10 +78,11 @@ router.post('/ask-ai/init', async (req, res) => {
         console.log(`💾 Session stored for user ${userId}`);
 
         // Call AI backend to initialize thread with article context
+        // AI will use source_url to fetch full article content via web scraping
         const aiRequest = {
             title: article.title,
             summary: article.description || '',
-            contents: article.content || '',
+            source_url: article.source_url || '',
             question: "Initialize session", // Dummy question to set context
             thread_id: userId
         };
@@ -168,12 +170,14 @@ router.post('/ask-ai/query', async (req, res) => {
 
         console.log(`💬 User ${userId} asking: "${question}"`);
         console.log(`📄 Using cached article: "${session.title}"`);
+        console.log(`🔗 Article URL: ${session.source_url || 'N/A'}`);
 
         // Prepare request for AI API using cached session data
+        // AI will use source_url to fetch full article content via web scraping
         const aiRequest = {
             title: session.title,
             summary: session.summary,
-            contents: session.contents,
+            source_url: session.source_url || '',
             question: question,
             thread_id: userId
         };
