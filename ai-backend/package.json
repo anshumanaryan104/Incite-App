@@ -5,7 +5,7 @@
   "main": "chatbot_api.py",
   "scripts": {
     "start": "uvicorn chatbot_api:app --host 0.0.0.0 --port 8000",
-    "dev": "uvicorn chatbot_api:app --host 0.0.0.0 --port 8000 --reload",
+    "dev": "py -3.12 -m uvicorn chatbot_api:app --host 0.0.0.0 --port 8000 --reload",
     "install": "pip install -r requirements.txt",
     "test": "python test_api.py"
   },

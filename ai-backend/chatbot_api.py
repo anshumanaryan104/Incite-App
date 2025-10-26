@@ -47,7 +47,7 @@ app.add_middleware(
 class ChatbotState(TypedDict):
     title: str
     summary: str
-    contents: str
+    source_url: str
     messages: Annotated[list[BaseMessage], operator.add]
 
 # Initialize LLM and Memory
@@ -76,7 +76,7 @@ logger.info("AI model initialized successfully with web search")
 class ChatRequest(BaseModel):
     title: str
     summary: str
-    contents: str
+    source_url: str
     question: str
     thread_id: str = "default"
 
@@ -89,7 +89,7 @@ class HistoryRequest(BaseModel):
 
 class MessageHistory(BaseModel):
     role: str  # 'user' or 'ai'
-    content: str
+    source_url: str
 
 class HistoryResponse(BaseModel):
     messages: list[MessageHistory]
@@ -98,22 +98,38 @@ class HistoryResponse(BaseModel):
 # LangGraph Node
 def chatbot_node(state: ChatbotState) -> ChatbotState:
     system_message = SystemMessage(
-        content=f"""You are a helpful AI assistant for a news app. Your job is to answer user questions about a specific news article they are reading.
+        content=f"""You are a helpful AI assistant for a news app. Your job is to answer user
+questions about a specific news article they are reading.
 
 ARTICLE INFORMATION:
 Title: {state['title']}
 Summary: {state['summary']}
-Content: {state['contents']}
+Full Article URL: {state['source_url']}
 
 INSTRUCTIONS:
-1. First, try to answer based on the article content.
-2. If the article mentions the answer, cite it directly.
-3. If the article doesn't have enough information, use web search to find the current, accurate answer.
-4. Keep your response concise and factual (2-3 sentences max).
-5. If using web search, mention that you verified it with current information.
-6. Only answer questions related to the article. If the question is not related to the article, say that this question is not related to the article and don't use web search.
+1. FIRST AND MOST IMPORTANT: Use web search to fetch and read the COMPLETE article from the URL        
+above. This is mandatory for every question.
+2. After reading the full article, answer the user's question based on the complete article content    
+ (not just the summary).
+3. If the article content directly mentions the answer, cite it and reference the article.
+4. If the article doesn't have enough information to answer the question, use additional web search    
+to find current, accurate information related to the topic.
+5. Keep your response concise and factual (2-3 sentences max).
+6. If you used additional web search beyond the article, mention that you verified it with current     
+information.
+7. Only answer questions related to the article topic. If the question is completely unrelated to      
+the article, politely say "This question is not related to the article" and do NOT perform any web     
+search.
+8. Always prioritize information from the original article URL first, then supplement with web
+search if needed.
+
+WORKFLOW:
+Step 1: Fetch full article from {state['source_url']} using web search
+Step 2: Read and understand the complete article
+Step 3: Check if user's question is related to the article
+Step 4: Answer based on article content, or use additional web search if needed
 """
-    )
+  )
 
     # Get the last message (user question)
     user_messages = [msg for msg in state["messages"] if isinstance(msg, HumanMessage)]
@@ -148,7 +164,7 @@ async def chat(request: ChatRequest):
         input_data = {
             "title": request.title,
             "summary": request.summary,
-            "contents": request.contents,
+            "source_url": request.source_url,
             "messages": [HumanMessage(content=request.question)]
         }
 
